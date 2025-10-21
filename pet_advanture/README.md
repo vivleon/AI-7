@@ -1,0 +1,20 @@
+// 디렉토리 구조
+// src/
+//   main.c
+//   pet_manager.c
+//   battle_manager.c
+//   shop_manager.c
+//   quest_manager.c
+//   map_manager.c
+//   final_boss.c
+//   save_load.c
+//   skill_manager.c
+// include/
+//   pet_manager.h
+//   battle_manager.h
+//   shop_manager.h
+//   quest_manager.h
+//   map_manager.h
+//   final_boss.h
+//   save_load.h
+//   skill_manager.h
