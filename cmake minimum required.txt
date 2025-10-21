@@ -1,0 +1,1252 @@
+cmake_minimum_required(VERSION 3.16)
+project(VigilEdge VERSION 0.1 LANGUAGES CXX)
+
+set(CMAKE_AUTOUIC ON)
+set(CMAKE_AUTOMOC ON)
+set(CMAKE_AUTORCC ON)
+
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+find_package(Qt6 REQUIRED COMPONENTS
+    Core Gui Widgets Sql Network
+    Qml Quick QuickControls2 Charts
+    Positioning Location
+    QuickWidgets
+    PrintSupport
+)
+
+find_package(OpenSSL REQUIRED)
+
+set(PROJECT_SOURCES
+    main.cpp
+    # UI / Dash
+    MainDashboard.cpp
+    MainDashboard.h
+    MainDashboard.ui
+
+    # 로그인 / 유저
+    LoginDialog.cpp
+    LoginDialog.h
+    LoginDialog.ui
+    UserMgmtDialog.cpp
+    UserMgmtDialog.h
+
+    # DB & Models
+    DBBridge.cpp
+    DBBridge.h
+    SensorData.h
+    LogTableModel.h
+    LogTableModel.cpp
+    CustomFilterProxyModel.h
+    CustomFilterProxyModel.cpp
+    Role.h
+    Thresholds.h
+
+    # 지도(QML)
+    MapDialog.cpp
+    MapDialog.h
+    MapDialog.ui
+    qml.qrc
+
+    # 스레드/분석
+    SensorManager.cpp
+    SensorManager.h
+    ThreadWorker.cpp
+    ThreadWorker.h
+    PatternAnalyzer.cpp
+    PatternAnalyzer.h
+
+    # Alert Rules
+    AlertRulesDialog.cpp
+    AlertRulesDialog.h
+
+    # Language
+    LanguageManager.h
+    LanguageManager.cpp
+
+    # AI Dialogs (확장)
+    AIDialogs.cpp
+    AIDialogs.h
+
+    # 감사 로그
+    AuditLogDialog.cpp
+    AuditLogDialog.h
+)
+
+qt_add_executable(VigilEdge
+    MANUAL_FINALIZATION
+    ${PROJECT_SOURCES}
+)
+
+target_link_libraries(VigilEdge PRIVATE
+    Qt6::Core
+    Qt6::Gui
+    Qt6::Widgets
+    Qt6::Sql
+    Qt6::Network
+    Qt6::Qml
+    Qt6::Quick
+    Qt6::QuickControls2
+    Qt6::Charts
+    Qt6::Positioning
+    Qt6::Location
+    Qt6::QuickWidgets
+    Qt6::PrintSupport
+    OpenSSL::SSL
+    OpenSSL::Crypto
+)
+
+set_target_properties(VigilEdge PROPERTIES
+    MACOSX_BUNDLE TRUE
+    WIN32_EXECUTABLE TRUE
+)
+
+qt_finalize_executable(VigilEdge)
+
+
+#ifndef AIDIALOGS_H
+#define AIDIALOGS_H
+
+#include <QDialog>
+#include <QDateTime>
+
+class QVBoxLayout;
+class QPlainTextEdit;
+class QWidget;
+class DBBridge;
+
+// ───────────── Base with PDF Toolbar ─────────────
+class BaseAIDialog : public QDialog {
+    Q_OBJECT
+public:
+    explicit BaseAIDialog(QWidget* parent = nullptr);
+    virtual ~BaseAIDialog() = default;
+
+protected slots:
+    void exportPdf();
+    void printDoc();
+
+protected:
+    void attachPdfToolbar(QWidget* targetForRender); // chart view or main widget
+    QWidget* renderTarget() const { return render_; }
+
+protected:
+    QVBoxLayout* lay {nullptr};
+
+private:
+    QWidget* render_ {nullptr};
+};
+
+// ───────────── KPI (Chart) ─────────────
+class KPIDialog : public BaseAIDialog {
+    Q_OBJECT
+public:
+    explicit KPIDialog(DBBridge* db,
+                       const QDateTime& from,
+                       const QDateTime& to,
+                       QWidget* parent = nullptr);
+private:
+    void buildChart(DBBridge* db, const QDateTime& from, const QDateTime& to);
+};
+
+// ───────────── KPI Summary (Text) ─────────────
+class KPISummaryDialog : public BaseAIDialog {
+    Q_OBJECT
+public:
+    explicit KPISummaryDialog(DBBridge* db,
+                              const QDateTime& from,
+                              const QDateTime& to,
+                              QWidget* parent = nullptr);
+};
+
+// ───────────── Trend (+Forecast) ─────────────
+class TrendDialog : public BaseAIDialog {
+    Q_OBJECT
+public:
+    explicit TrendDialog(DBBridge* db,
+                         const QDateTime& from,
+                         const QDateTime& to,
+                         int bucketSec,
+                         QWidget* parent = nullptr);
+};
+
+// ───────────── XAI (상위 이상치 설명) ─────────────
+class XAIDialog : public BaseAIDialog {
+    Q_OBJECT
+public:
+    explicit XAIDialog(DBBridge* db,
+                       const QDateTime& from,
+                       const QDateTime& to,
+                       QWidget* parent = nullptr);
+};
+
+// ───────────── Report (Text + Export/Print) ─────────────
+class ReportDialog : public BaseAIDialog {
+    Q_OBJECT
+public:
+    explicit ReportDialog(DBBridge* db,
+                          const QDateTime& from,
+                          const QDateTime& to,
+                          QWidget* parent = nullptr);
+private:
+    QPlainTextEdit* txt {nullptr};
+};
+
+// ───────────── Rule Simulator ─────────────
+class RuleSimDialog : public BaseAIDialog {
+    Q_OBJECT
+public:
+    explicit RuleSimDialog(DBBridge* db,
+                           const QDateTime& from,
+                           const QDateTime& to,
+                           QWidget* parent=nullptr);
+};
+
+// ───────────── RCA ─────────────
+class RCADialog : public BaseAIDialog {
+    Q_OBJECT
+public:
+    explicit RCADialog(DBBridge* db,
+                       const QDateTime& from,
+                       const QDateTime& to,
+                       const QString& typeFilter,
+                       QWidget* parent=nullptr);
+};
+
+// ───────────── NL Query (미니 DSL) ─────────────
+class NLQDialog : public BaseAIDialog {
+    Q_OBJECT
+public:
+    explicit NLQDialog(DBBridge* db, const QString& query, QWidget* parent=nullptr);
+};
+
+// ───────────── Health ─────────────
+class HealthDiagDialog : public BaseAIDialog {
+    Q_OBJECT
+public:
+    explicit HealthDiagDialog(DBBridge* db,
+                              const QDateTime& from,
+                              const QDateTime& to,
+                              const QString& typeFilter,
+                              QWidget* parent=nullptr);
+};
+
+#endif // AIDIALOGS_H
+
+
+#include "AIDialogs.h"
+#include "DBBridge.h"
+#include "Thresholds.h"
+
+#include <QVBoxLayout>
+#include <QPlainTextEdit>
+#include <QTextDocument>
+#include <QPrinter>
+#include <QFileDialog>
+#include <QPrintDialog>
+#include <QHBoxLayout>
+#include <QPushButton>
+#include <QLabel>
+#include <QDateTime>
+#include <QMap>
+#include <QRegularExpression>
+#include <algorithm>
+#include <cmath>
+
+// Qt Charts
+#include <QtCharts/QChart>
+#include <QtCharts/QChartView>
+#include <QtCharts/QBarSeries>
+#include <QtCharts/QBarSet>
+#include <QtCharts/QBarCategoryAxis>
+#include <QtCharts/QValueAxis>
+#include <QtCharts/QLineSeries>
+#include <QtCharts/QDateTimeAxis>
+#include <QtCharts/QPieSeries>
+#include <QPen>
+
+using namespace Qt::StringLiterals;
+
+static QDateTime defaultFrom() { return QDateTime::currentDateTime().addDays(-1); }
+static QDateTime defaultTo()   { return QDateTime::currentDateTime(); }
+
+// ---------------- Base + PDF Toolbar ----------------
+BaseAIDialog::BaseAIDialog(QWidget* parent) : QDialog(parent) {
+    setModal(false);
+    setWindowModality(Qt::NonModal);
+    setAttribute(Qt::WA_DeleteOnClose);
+    resize(980, 640);
+    lay = new QVBoxLayout(this);
+    setLayout(lay);
+}
+
+void BaseAIDialog::attachPdfToolbar(QWidget* target)
+{
+    render_ = target;
+    auto *row = new QHBoxLayout();
+    auto *btnPdf = new QPushButton("Export PDF", this);
+    auto *btnPrint = new QPushButton("Print", this);
+    row->addStretch(1);
+    row->addWidget(btnPdf);
+    row->addWidget(btnPrint);
+    lay->addLayout(row, 0);
+    connect(btnPdf,  &QPushButton::clicked, this, &BaseAIDialog::exportPdf);
+    connect(btnPrint,&QPushButton::clicked, this, &BaseAIDialog::printDoc);
+}
+
+void BaseAIDialog::exportPdf()
+{
+    const QString path = QFileDialog::getSaveFileName(this, tr("Export PDF"), QString(), tr("PDF Files (*.pdf)"));
+    if (path.isEmpty() || !render_) return;
+
+    QPrinter printer(QPrinter::HighResolution);
+    printer.setOutputFormat(QPrinter::PdfFormat);
+    printer.setOutputFileName(path);
+    printer.setPageMargins(QMarginsF(12,12,12,12));
+
+    // 위젯 렌더 → 프린터
+    render_->render(&printer);
+}
+
+void BaseAIDialog::printDoc()
+{
+    if (!render_) return;
+    QPrinter printer(QPrinter::HighResolution);
+    QPrintDialog dlg(&printer, this);
+    if (dlg.exec() != QDialog::Accepted) return;
+    render_->render(&printer);
+}
+
+// ---------------- KPIDialog ----------------
+KPIDialog::KPIDialog(DBBridge* db, const QDateTime& from, const QDateTime& to, QWidget* parent)
+    : BaseAIDialog(parent)
+{
+    setWindowTitle("AI • KPI");
+    buildChart(db, from, to);
+}
+
+void KPIDialog::buildChart(DBBridge* db, const QDateTime& from, const QDateTime& to)
+{
+    QMap<QString,KPIStats> kpis;
+    db->kpiAll(from, to, &kpis);
+
+    auto *setAvg = new QBarSet("Avg");
+    auto *setMin = new QBarSet("Min");
+    auto *setMax = new QBarSet("Max");
+
+    QStringList cats;
+    const QStringList types = {"TEMP","VIB","INTR"};
+    for (const auto& t : types) {
+        cats << t;
+        const KPIStats st = kpis.value(t);
+        *setAvg << (st.count? st.avg : 0);
+        *setMin << (st.count? st.mn  : 0);
+        *setMax << (st.count? st.mx  : 0);
+    }
+
+    auto *series = new QBarSeries();
+    series->append(setAvg);
+    series->append(setMin);
+    series->append(setMax);
+
+    auto *chart = new QtCharts::QChart();
+    chart->addSeries(series);
+    chart->setTitle(QString("KPI (%1 ~ %2)")
+                        .arg(from.toString("MM-dd HH:mm"))
+                        .arg(to.toString("MM-dd HH:mm")));
+    chart->setAnimationOptions(QtCharts::QChart::SeriesAnimations);
+
+    auto *axisX = new QtCharts::QBarCategoryAxis();
+    axisX->append(cats);
+    chart->addAxis(axisX, Qt::AlignBottom);
+    series->attachAxis(axisX);
+
+    auto *axisY = new QtCharts::QValueAxis();
+    axisY->setTitleText("Value");
+    chart->addAxis(axisY, Qt::AlignLeft);
+    series->attachAxis(axisY);
+
+    auto *view = new QtCharts::QChartView(chart);
+    view->setRenderHint(QPainter::Antialiasing);
+    lay->addWidget(view, 1);
+
+    // 레벨 분포 파이
+    auto *pie = new QtCharts::QPieSeries();
+    int low=0, med=0, high=0;
+    for (const auto& t : types) {
+        const KPIStats st = kpis.value(t);
+        low  += st.low;
+        med  += st.med;
+        high += st.high;
+    }
+    if (low+med+high>0) {
+        pie->append("LOW", low);
+        pie->append("MED", med);
+        pie->append("HIGH", high);
+        auto *c2 = new QtCharts::QChart();
+        c2->addSeries(pie);
+        c2->setTitle("Level Distribution (All Types)");
+        auto *v2 = new QtCharts::QChartView(c2);
+        v2->setRenderHint(QPainter::Antialiasing);
+        lay->addWidget(v2, 1);
+        attachPdfToolbar(v2); // PDF 타겟
+    } else {
+        attachPdfToolbar(view);
+    }
+}
+
+// ---------------- KPISummaryDialog ----------------
+KPISummaryDialog::KPISummaryDialog(DBBridge* db, const QDateTime& from, const QDateTime& to, QWidget* parent)
+    : BaseAIDialog(parent)
+{
+    setWindowTitle("AI • KPI Summary");
+    auto* text = new QPlainTextEdit(this);
+    text->setReadOnly(true);
+
+    QMap<QString,KPIStats> kpis;
+    db->kpiAll(from, to, &kpis);
+    QString s;
+    s += "기간: " + from.toString("yyyy-MM-dd HH:mm") + " ~ " + to.toString("yyyy-MM-dd HH:mm") + "\n\n";
+    for (auto it = kpis.begin(); it != kpis.end(); ++it) {
+        const QString t = it.key();
+        const KPIStats& st = it.value();
+        s += QString("[%1]\n - Count: %2\n - Avg: %3, Min: %4, Max: %5\n - Levels: LOW %6, MED %7, HIGH %8\n\n")
+                 .arg(t).arg(st.count)
+                 .arg(QString::number(st.avg,'f',2))
+                 .arg(QString::number(st.mn ,'f',2))
+                 .arg(QString::number(st.mx ,'f',2))
+                 .arg(st.low).arg(st.med).arg(st.high);
+    }
+    int totalHigh=0; for (auto v: kpis) totalHigh += v.high;
+    if (totalHigh>0) s += QString("※ 관찰: HIGH 이벤트가 %1건. 임계치/운영 규칙 점검 권장.\n").arg(totalHigh);
+    text->setPlainText(s);
+
+    lay->addWidget(text, 1);
+    attachPdfToolbar(text);
+}
+
+// ---------------- TrendDialog (+Forecast/Risk) ----------------
+static QVector<QPointF> holtLinear(const QVector<QPointF>& s, double alpha, double beta,
+                                   int steps, qint64 stepMs)
+{
+    QVector<QPointF> out;
+    if (s.size() < 2) return out;
+    double L = s[0].y();
+    double T = s[1].y() - s[0].y();
+    for (int i=1;i<s.size();++i){
+        const double y = s[i].y();
+        const double prevL = L;
+        L = alpha * y + (1.0 - alpha) * (L + T);
+        T = beta  * (L - prevL) + (1.0 - beta) * T;
+    }
+    const qreal lastX = s.back().x();
+    for (int k=1;k<=steps;++k){
+        const double yhat = L + k * T;
+        out.append(QPointF(lastX + k * double(stepMs), yhat));
+    }
+    return out;
+}
+
+TrendDialog::TrendDialog(DBBridge* db, const QDateTime& from, const QDateTime& to, int bucketSec, QWidget* parent)
+    : BaseAIDialog(parent)
+{
+    setWindowTitle("Analyst • Trend (+Forecast)");
+
+    const QStringList types = {"TEMP","VIB","INTR"};
+    auto *chart = new QtCharts::QChart();
+
+    // thresholds
+    QMap<QString, TypeThreshold> thrByType;
+    for (const auto& t : types) {
+        TypeThreshold th;
+        thrByType[t] = (db->getTypeThreshold(t, &th) ? th : TypeThreshold{t,50,80,""});
+    }
+
+    qint64 stepMs = qint64(bucketSec) * 1000;
+
+    for (const auto& t : types) {
+        auto pts = db->trendSeries(t, from, to, bucketSec);
+        if (pts.isEmpty()) continue;
+
+        auto *ls = new QtCharts::QLineSeries();
+        ls->setName(t);
+        for (const auto& p : pts) ls->append(p);
+        chart->addSeries(ls);
+
+        // Forecast (Holt’s linear)
+        auto fc = holtLinear(pts, 0.35, 0.20, /*steps*/ 10, stepMs);
+        if (!fc.isEmpty()) {
+            auto *lf = new QtCharts::QLineSeries();
+            lf->setName(QString("%1 • Forecast").arg(t));
+            QPen pen(Qt::DashLine); pen.setWidthF(1.5);
+            lf->setPen(pen);
+            for (const auto& p : fc) lf->append(p);
+            chart->addSeries(lf);
+
+            // 위험 스코어
+            const auto thr = thrByType.value(t);
+            double maxF = thr.warn;
+            for (const auto& p : fc) maxF = std::max(maxF, double(p.y()));
+            const double denom = std::max(1e-6, thr.high - thr.warn);
+            const double risk = std::clamp((maxF - thr.warn) / denom, 0.0, 1.0);
+            chart->setTitle(QString("Trend (%1s) — %2 risk≈%3%")
+                                .arg(bucketSec).arg(t).arg(int(std::round(risk*100))));
+        }
+    }
+
+    auto *axX = new QtCharts::QDateTimeAxis(); axX->setTitleText("Time"); axX->setFormat("MM-dd HH:mm"); axX->setTickCount(8);
+#if (QT_VERSION >= QT_VERSION_CHECK(6,2,0))
+    axX->setLabelsAngle(-45);
+#endif
+    auto *axY = new QtCharts::QValueAxis(); axY->setTitleText("Avg Value");
+
+    chart->addAxis(axX, Qt::AlignBottom);
+    chart->addAxis(axY, Qt::AlignLeft);
+    for (auto s : chart->series()) { s->attachAxis(axX); s->attachAxis(axY); }
+    chart->setAnimationOptions(QtCharts::QChart::SeriesAnimations);
+
+    auto *view = new QtCharts::QChartView(chart);
+    view->setRenderHint(QPainter::Antialiasing);
+    lay->addWidget(view, 1);
+    attachPdfToolbar(view);
+}
+
+// ---------------- XAIDialog ----------------
+XAIDialog::XAIDialog(DBBridge* db, const QDateTime& from, const QDateTime& to, QWidget* parent)
+    : BaseAIDialog(parent)
+{
+    setWindowTitle("Analyst • XAI");
+    auto* text = new QPlainTextEdit(this);
+    text->setReadOnly(true);
+    lay->addWidget(text, 1);
+    attachPdfToolbar(text);
+
+    auto highs = db->topAnomalies(from, to, 10);
+    int tH=0, vH=0, iH=0;
+    for (const auto& d : highs) {
+        if (d.type=="TEMP") ++tH;
+        else if (d.type=="VIB") ++vH;
+        else if (d.type=="INTR") ++iH;
+    }
+    QString out;
+    out += QString("기간: %1 ~ %2\n\n").arg(from.toString("yyyy-MM-dd HH:mm"), to.toString("yyyy-MM-dd HH:mm"));
+    out += "설명 가능한 인사이트(XAI):\n";
+    if (!highs.isEmpty()) {
+        out += QString(" • 상위 10건 HIGH 분포 → TEMP:%1, VIB:%2, INTR:%3\n").arg(tH).arg(vH).arg(iH);
+        out += " • TEMP↑: 냉각/환기/환경 점검, VIB↑: 기계 진동/마모, INTR↑: 출입통제 이상 여부 확인 권장.\n";
+    } else {
+        out += " • 분석 구간에서 HIGH 이상이 거의 없습니다.\n";
+    }
+    out += " • 동일/인접 좌표(±25m) 반복 발생 여부 점검을 추천합니다.\n";
+    text->setPlainText(out);
+}
+
+// ---------------- ReportDialog ----------------
+ReportDialog::ReportDialog(DBBridge* /*db*/, const QDateTime& from, const QDateTime& to, QWidget* parent)
+    : BaseAIDialog(parent)
+{
+    setWindowTitle("Analyst • Report");
+
+    txt = new QPlainTextEdit(this);
+    txt->setReadOnly(false);
+    lay->addWidget(txt, 1);
+    attachPdfToolbar(txt);
+
+    QString s;
+    s += QString("보고서 기간: %1 ~ %2\n\n")
+             .arg(from.toString("yyyy-MM-dd HH:mm"), to.toString("yyyy-MM-dd HH:mm"));
+    s += "[요약]\n - KPI/Trend/XAI/튜닝 히스토리 요약을 삽입하세요.\n";
+    txt->setPlainText(s);
+}
+
+// ---------------- Rule Simulator ----------------
+RuleSimDialog::RuleSimDialog(DBBridge* db, const QDateTime& from, const QDateTime& to, QWidget* parent)
+    : BaseAIDialog(parent)
+{
+    setWindowTitle("Analyst • Rule Simulator");
+
+    // 예시: 타입별 현재 vs 가상(warn+5%, high+10%) 비교
+    const QStringList types = {"TEMP","VIB","INTR"};
+    auto *chart = new QtCharts::QChart();
+
+    auto *curHigh = new QtCharts::QBarSet("Current HIGH");
+    auto *newHigh = new QtCharts::QBarSet("Simulated HIGH");
+
+    QStringList cats;
+    for (const auto& t: types) {
+        KPIStats cur{};
+        if (!db->kpiForType(t, from, to, &cur)) continue;
+        double warn = 50, high = 80;
+        TypeThreshold thr;
+        if (db->getTypeThreshold(t, &thr)) { warn = thr.warn; high = thr.high; }
+
+        KPIStats sim{};
+        db->simulateCounts(t, from, to, warn*1.05, high*1.10, &sim);
+
+        cats << t;
+        *curHigh << cur.high;
+        *newHigh << sim.high;
+    }
+    auto *series = new QtCharts::QBarSeries(); series->append(curHigh); series->append(newHigh);
+    chart->addSeries(series);
+    auto *axX = new QtCharts::QBarCategoryAxis(); axX->append(cats); chart->addAxis(axX, Qt::AlignBottom); series->attachAxis(axX);
+    auto *axY = new QtCharts::QValueAxis(); axY->setTitleText("HIGH Count"); chart->addAxis(axY, Qt::AlignLeft); series->attachAxis(axY);
+
+    auto *view = new QtCharts::QChartView(chart); view->setRenderHint(QPainter::Antialiasing);
+    lay->addWidget(view, 1);
+    attachPdfToolbar(view);
+}
+
+// ---------------- RCA ----------------
+RCADialog::RCADialog(DBBridge* db, const QDateTime& from, const QDateTime& to, const QString& typeFilter, QWidget* parent)
+    : BaseAIDialog(parent)
+{
+    setWindowTitle("Analyst • RCA (Co-occurrence)");
+    auto* txt = new QPlainTextEdit(this); txt->setReadOnly(true);
+    lay->addWidget(txt, 1); attachPdfToolbar(txt);
+
+    auto pairs = db->rcaCooccurrence(from, to, typeFilter, /*bucketMin*/5, /*topK*/15);
+    QString s;
+    s += QString("기간: %1 ~ %2\n\n").arg(from.toString("yyyy-MM-dd HH:mm"), to.toString("yyyy-MM-dd HH:mm"));
+    s += "동일 시간버킷(5분) 내 HIGH 동시발생 상위 페어:\n";
+    if (pairs.isEmpty()) s += " - 없음\n";
+    for (const auto& p : pairs) s += QString(" - %1 ↔ %2 : %3회\n").arg(p.a, p.b).arg(p.cnt);
+    txt->setPlainText(s);
+}
+
+// ---------------- NLQ ----------------
+static bool parseSimpleQuery(const QString& q, QString* type, QString* level, QDateTime* from, QDateTime* to) {
+    // 예: "지난주 VIB HIGH", "어제 TEMP HIGH", "지난 3일 INTR MEDIUM"
+    QString s = q.toUpper().trimmed();
+    *type=""; *level="";
+    if (s.contains("TEMP")) *type="TEMP";
+    else if (s.contains("VIB")) *type="VIB";
+    else if (s.contains("INTR")) *type="INTR";
+
+    if (s.contains("HIGH")) *level="HIGH";
+    else if (s.contains("MED")) *level="MEDIUM";
+    else if (s.contains("LOW")) *level="LOW";
+
+    const QDateTime now = QDateTime::currentDateTime();
+    if (s.contains("지난주")) { *from = now.addDays(-7); *to = now; }
+    else if (s.contains("어제")) { *from = now.addDays(-1); *to = now; }
+    else if (s.contains("지난 3일")) { *from = now.addDays(-3); *to = now; }
+    else { *from = now.addDays(-7); *to = now; }
+    return true;
+}
+
+NLQDialog::NLQDialog(DBBridge* db, const QString& query, QWidget* parent)
+    : BaseAIDialog(parent)
+{
+    setWindowTitle("Analyst • NL Query");
+    auto* txt = new QPlainTextEdit(this); txt->setReadOnly(true);
+    lay->addWidget(txt, 1); attachPdfToolbar(txt);
+
+    QString type, level; QDateTime from, to;
+    parseSimpleQuery(query, &type, &level, &from, &to);
+
+    KPIStats k{}; db->kpiForType(type.isEmpty()?"TEMP":type, from, to, &k);
+    QString s; s += QString("Query: %1\n기간: %2 ~ %3\n\n").arg(query, from.toString("yyyy-MM-dd HH:mm"), to.toString("yyyy-MM-dd HH:mm"));
+    s += QString("[%1] Count=%2 / LOW=%3, MED=%4, HIGH=%5\n").arg(type.isEmpty()?"(미지정)":type).arg(k.count).arg(k.low).arg(k.med).arg(k.high);
+    txt->setPlainText(s);
+}
+
+// ---------------- Health ----------------
+HealthDiagDialog::HealthDiagDialog(DBBridge* db, const QDateTime& from, const QDateTime& to, const QString& typeFilter, QWidget* parent)
+    : BaseAIDialog(parent)
+{
+    setWindowTitle("Analyst • Sensor Health");
+    auto* txt = new QPlainTextEdit(this); txt->setReadOnly(true);
+    lay->addWidget(txt, 1); attachPdfToolbar(txt);
+
+    auto rows = db->sensorHealth(from, to, typeFilter, 200);
+    QString s;
+    s += QString("기간: %1 ~ %2\n\n").arg(from.toString("yyyy-MM-dd HH:mm"), to.toString("yyyy-MM-dd HH:mm"));
+    s += "flatRatio(유일값/전체)가 낮으면 정지/플랫 가능성, driftSlope가 크면 드리프트 가능성, spikeScore=표준편차 기반.\n\n";
+    for (const auto& r : rows) {
+        s += QString(" - [%1/%2] flatRatio=%.3f, driftSlope=%.3f, spikeScore=%.3f\n")
+        .arg(r.sensorId, r.type).arg(r.flatRatio,0,'f',3).arg(r.driftSlope,0,'f',3).arg(r.spikeScore,0,'f',3);
+    }
+    txt->setPlainText(s);
+}
+
+
+#include "AlertRulesDialog.h"
+#include "DBBridge.h"
+
+#include <QTableWidget>
+#include <QHeaderView>
+#include <QPushButton>
+#include <QComboBox>
+#include <QLineEdit>
+#include <QMessageBox>
+#include <QCloseEvent>
+#include <QTabWidget>
+#include <QVBoxLayout>
+#include <QHBoxLayout>
+#include <QAbstractItemView>
+#include <QLabel>
+#include <algorithm>
+#include <cmath>
+#include <limits>
+
+static double percentile(QVector<double> v, double p) {
+    if (v.isEmpty()) return std::numeric_limits<double>::quiet_NaN();
+    std::sort(v.begin(), v.end());
+    const double idx = (v.size() - 1) * p;
+    const int lo = int(std::floor(idx));
+    const int hi = int(std::ceil(idx));
+    if (lo == hi) return v[lo];
+    const double t = idx - lo;
+    return v[lo] * (1.0 - t) + v[hi] * t;
+}
+static double mean(const QVector<double>& v){ if(v.isEmpty()) return NAN; double s=0; for(double x:v)s+=x; return s/v.size(); }
+static double stdev(const QVector<double>& v){ if(v.size()<2) return NAN; double m=mean(v), s2=0; for(double x:v){ double d=x-m; s2+=d*d; } return std::sqrt(s2/(v.size()-1)); }
+
+static void prepTypeTable(QTableWidget* t) {
+    t->setColumnCount(4);
+    t->setHorizontalHeaderLabels({"Type","Warn","High","Unit"});
+    t->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+    t->setEditTriggers(QAbstractItemView::DoubleClicked | QAbstractItemView::SelectedClicked);
+}
+
+static void prepSensorTable(QTableWidget* t) {
+    t->setColumnCount(5);
+    t->setHorizontalHeaderLabels({"SensorId","Type","Warn","High","Unit"});
+    t->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+    t->setEditTriggers(QAbstractItemView::DoubleClicked | QAbstractItemView::SelectedClicked);
+}
+
+AlertRulesDialog::AlertRulesDialog(DBBridge* db, const QString& actor, QWidget* parent)
+    : QDialog(parent), db_(db), actor_(actor)
+{
+    initUi();
+    loadType();
+    loadSensor();
+}
+
+QWidget* AlertRulesDialog::makeTypeCombo(const QString& current) const {
+    auto *c = new QComboBox; c->addItems({"TEMP","VIB","INTR"});
+    int idx = c->findText(current); if (idx<0) idx=0; c->setCurrentIndex(idx);
+    return c;
+}
+QWidget* AlertRulesDialog::makeSensorTypeCombo(const QString& current) const {
+    return makeTypeCombo(current);
+}
+QString AlertRulesDialog::comboValueAt(QTableWidget* tbl, int row, int col) const {
+    if (!tbl) return {};
+    if (auto *c = qobject_cast<QComboBox*>(tbl->cellWidget(row,col)))
+        return c->currentText();
+    if (tbl->item(row,col)) return tbl->item(row,col)->text().trimmed();
+    return {};
+}
+
+void AlertRulesDialog::initUi() {
+    auto *lay = new QVBoxLayout(this);
+    auto *tabs = new QTabWidget(this);
+
+    // By Type
+    auto *pageType = new QWidget(tabs);
+    auto *vl1 = new QVBoxLayout(pageType);
+    tblType_ = new QTableWidget(pageType);
+    prepTypeTable(tblType_);
+    vl1->addWidget(tblType_);
+    pageType->setLayout(vl1);
+
+    // By Sensor
+    auto *pageSensor = new QWidget(tabs);
+    auto *vl2 = new QVBoxLayout(pageSensor);
+
+    auto *hl = new QHBoxLayout();
+    comboType_ = new QComboBox(pageSensor);
+    comboType_->addItems({"All","TEMP","VIB","INTR"});
+    editFilter_ = new QLineEdit(pageSensor);
+
+    hl->addWidget(new QLabel("Filter Type", pageSensor));
+    hl->addWidget(comboType_);
+    hl->addWidget(new QLabel("SensorId contains", pageSensor));
+    hl->addWidget(editFilter_);
+    hl->addStretch(1);
+    vl2->addLayout(hl);
+
+    tblSensor_ = new QTableWidget(pageSensor);
+    prepSensorTable(tblSensor_);
+    vl2->addWidget(tblSensor_);
+    pageSensor->setLayout(vl2);
+
+    tabs->addTab(pageType, "By Type");
+    tabs->addTab(pageSensor, "By Sensor");
+    lay->addWidget(tabs);
+
+    // Buttons
+    auto *btnRow = new QHBoxLayout();
+    btnRow->addStretch(1);
+    auto *btnSuggestTypes   = new QPushButton("Suggest (14d, Type)", this);
+    auto *btnSuggestSensors = new QPushButton("Suggest (14d, Sensor)", this);
+    auto *btnSave = new QPushButton("Save", this);
+    auto *btnCancel = new QPushButton("Cancel", this);
+
+    btnRow->addWidget(btnSuggestTypes);
+    btnRow->addWidget(btnSuggestSensors);
+    btnRow->addWidget(btnSave);
+    btnRow->addWidget(btnCancel);
+    lay->addLayout(btnRow);
+
+    connect(btnSave, &QPushButton::clicked, this, &AlertRulesDialog::onSave);
+    connect(btnCancel,&QPushButton::clicked, this, &AlertRulesDialog::onCancel);
+    connect(comboType_, &QComboBox::currentTextChanged, this, &AlertRulesDialog::onFilterChanged);
+    connect(editFilter_, &QLineEdit::textChanged, this, &AlertRulesDialog::onFilterChanged);
+
+    setMinimumSize(900, 560);
+    setModal(true);
+
+    connect(btnSuggestTypes,   &QPushButton::clicked, this, &AlertRulesDialog::onSuggestTypes);
+    connect(btnSuggestSensors, &QPushButton::clicked, this, &AlertRulesDialog::onSuggestSensors);
+}
+
+void AlertRulesDialog::markDirty(bool d){ dirty_ = d; }
+
+void AlertRulesDialog::closeEvent(QCloseEvent* e) {
+    if (dirty_ && !confirmLose("close")) { e->ignore(); return; }
+    QDialog::closeEvent(e);
+}
+
+bool AlertRulesDialog::confirmLose(const QString& what) {
+    const auto r = QMessageBox::question(this, "Confirm",
+                                         QString("Are you sure you want to %1 without saving?").arg(what));
+    return (r == QMessageBox::Yes);
+}
+
+void AlertRulesDialog::loadType() {
+    tblType_->clearContents();
+    auto rows = db_->listTypeThresholds();
+    tblType_->setRowCount(rows.size());
+    for (int i=0;i<rows.size();++i){
+        const auto &r = rows[i];
+        // Type: 콤보
+        tblType_->setCellWidget(i,0, makeTypeCombo(r.type));
+        tblType_->setItem(i,1,new QTableWidgetItem(QString::number(r.warn)));
+        tblType_->setItem(i,2,new QTableWidgetItem(QString::number(r.high)));
+        tblType_->setItem(i,3,new QTableWidgetItem(r.unit));
+    }
+    markDirty(false);
+}
+
+void AlertRulesDialog::loadSensor() {
+    tblSensor_->clearContents();
+    const QString typ = comboType_->currentText();
+    const QString like = editFilter_->text().trimmed();
+    auto rows = db_->listSensorThresholds(typ=="All"?QString():typ, like);
+    tblSensor_->setRowCount(rows.size());
+    for (int i=0;i<rows.size();++i){
+        const auto &r = rows[i];
+        tblSensor_->setItem(i,0,new QTableWidgetItem(r.sensorId));
+        tblSensor_->setCellWidget(i,1, makeSensorTypeCombo(r.type));
+        tblSensor_->setItem(i,2,new QTableWidgetItem(QString::number(r.warn)));
+        tblSensor_->setItem(i,3,new QTableWidgetItem(QString::number(r.high)));
+        tblSensor_->setItem(i,4,new QTableWidgetItem(r.unit));
+    }
+    markDirty(false);
+}
+
+void AlertRulesDialog::onFilterChanged() { loadSensor(); }
+
+bool AlertRulesDialog::collectType(QVector<TypeThreshold>& out) const {
+    out.clear();
+    for (int r=0;r<tblType_->rowCount();++r){
+        TypeThreshold t;
+        t.type = comboValueAt(tblType_, r, 0);
+        t.warn = tblType_->item(r,1) ? tblType_->item(r,1)->text().toDouble() : 0.0;
+        t.high = tblType_->item(r,2) ? tblType_->item(r,2)->text().toDouble() : 0.0;
+        t.unit = tblType_->item(r,3) ? tblType_->item(r,3)->text().trimmed() : QString();
+        if (t.type.isEmpty()) return false;
+        out.push_back(t);
+    }
+    return true;
+}
+
+bool AlertRulesDialog::collectSensor(QVector<SensorThreshold>& out) const {
+    out.clear();
+    for (int r=0;r<tblSensor_->rowCount();++r){
+        if (!tblSensor_->item(r,0)) continue;
+        SensorThreshold t;
+        t.sensorId = tblSensor_->item(r,0)->text().trimmed();
+        t.type     = comboValueAt(tblSensor_, r, 1);
+        t.warn     = tblSensor_->item(r,2) ? tblSensor_->item(r,2)->text().toDouble() : 0.0;
+        t.high     = tblSensor_->item(r,3) ? tblSensor_->item(r,3)->text().toDouble() : 0.0;
+        t.unit     = tblSensor_->item(r,4) ? tblSensor_->item(r,4)->text().trimmed() : QString();
+        if (t.sensorId.isEmpty() || t.type.isEmpty()) return false;
+        out.push_back(t);
+    }
+    return true;
+}
+
+void AlertRulesDialog::onSuggestSensors()
+{
+    const QDateTime to   = QDateTime::currentDateTime();
+    const QDateTime from = to.addDays(-14);
+
+    const auto sensors = db_->listKnownSensors();
+
+    for (int r=0; r<tblSensor_->rowCount(); ++r) {
+        if (!tblSensor_->item(r,0)) continue;
+        const QString sid  = tblSensor_->item(r,0)->text().trimmed();
+        const QString type = comboValueAt(tblSensor_, r, 1);
+        if (sid.isEmpty() || type.isEmpty()) continue;
+        if (!sensors.contains(sid)) continue;
+
+        auto vals = db_->sampleValues(type, sid, from, to, 5000);
+        if (vals.size() < 30) continue;
+
+        const double q1 = percentile(vals, 0.25);
+        const double q3 = percentile(vals, 0.75);
+        const double iqr = q3 - q1;
+        double warn = q3;
+        double high = q3 + 1.5 * iqr;
+
+        if (iqr < 1e-6) { // 분산 거의 없음 → 평균/표준편차 fallback
+            const double mu  = mean(vals);
+            const double sig = stdev(vals);
+            warn = mu + 1.0 * sig;
+            high = mu + 2.0 * sig;
+        }
+
+        if (!tblSensor_->item(r,2)) tblSensor_->setItem(r,2,new QTableWidgetItem);
+        if (!tblSensor_->item(r,3)) tblSensor_->setItem(r,3,new QTableWidgetItem);
+        tblSensor_->item(r,2)->setText(QString::number(warn, 'f', 2));
+        tblSensor_->item(r,3)->setText(QString::number(high, 'f', 2));
+    }
+    markDirty(true);
+    QMessageBox::information(this, "Suggested", "센서별 임계치 추천값을 채웠습니다. 저장으로 반영하세요.");
+}
+
+void AlertRulesDialog::onSuggestTypes()
+{
+    const QDateTime to   = QDateTime::currentDateTime();
+    const QDateTime from = to.addDays(-14);
+
+    for (int r=0; r<tblType_->rowCount(); ++r) {
+        const QString type = comboValueAt(tblType_, r, 0);
+        if (type.isEmpty()) continue;
+
+        auto vals = db_->sampleValues(type, QString(), from, to, 5000);
+        if (vals.size() < 30) continue;
+
+        const double q1 = percentile(vals, 0.25);
+        const double q3 = percentile(vals, 0.75);
+        const double iqr = q3 - q1;
+        double warn = q3;
+        double high = q3 + 1.5 * iqr;
+
+        if (iqr < 1e-6) {
+            const double mu  = mean(vals);
+            const double sig = stdev(vals);
+            warn = mu + 1.0 * sig;
+            high = mu + 2.0 * sig;
+        }
+
+        if (!tblType_->item(r,1)) tblType_->setItem(r,1,new QTableWidgetItem);
+        if (!tblType_->item(r,2)) tblType_->setItem(r,2,new QTableWidgetItem);
+        tblType_->item(r,1)->setText(QString::number(warn, 'f', 2));
+        tblType_->item(r,2)->setText(QString::number(high, 'f', 2));
+    }
+    markDirty(true);
+    QMessageBox::information(this, "Suggested", "타입별 임계치 추천값을 채웠습니다. 저장으로 반영하세요.");
+}
+
+void AlertRulesDialog::onSave() {
+    QVector<TypeThreshold> types;
+    QVector<SensorThreshold> sensors;
+    if (!collectType(types) || !collectSensor(sensors)) {
+        QMessageBox::warning(this,"Invalid","Please fill required fields.");
+        return;
+    }
+    const auto r = QMessageBox::question(this,"Confirm Save",
+                                         QString("Apply %1 type rules and %2 sensor overrides?")
+                                             .arg(types.size()).arg(sensors.size()));
+    if (r != QMessageBox::Yes) return;
+
+    QString err;
+    if (!db_->saveTypeThresholds(actor_, types, &err)) {
+        QMessageBox::warning(this,"Save failed (type)", err);
+        return;
+    }
+    if (!db_->saveSensorThresholds(actor_, sensors, &err)) {
+        QMessageBox::warning(this,"Save failed (sensor)", err);
+        return;
+    }
+
+    // 히스토리 기록 (14d 샘플 수 포함)
+    const QDateTime to   = QDateTime::currentDateTime();
+    const QDateTime from = to.addDays(-14);
+
+    for (const auto& t : types) {
+        const int sampleCount = db_->sampleValues(t.type, QString(), from, to, 5000).size();
+        db_->insertThresholdTuning(
+            actor_, "TYPE", t.type, "IQR",
+            t.warn, t.high, sampleCount,
+            QString("from=%1,to=%2").arg(from.toString(Qt::ISODate)).arg(to.toString(Qt::ISODate))
+            );
+    }
+    for (const auto& s : sensors) {
+        const int sampleCount = db_->sampleValues(s.type, s.sensorId, from, to, 5000).size();
+        db_->insertThresholdTuning(
+            actor_, "SENSOR", s.sensorId, "IQR",
+            s.warn, s.high, sampleCount,
+            QString("type=%1;from=%2;to=%3").arg(s.type, from.toString(Qt::ISODate), to.toString(Qt::ISODate))
+            );
+    }
+
+    markDirty(false);
+    accept();
+}
+
+void AlertRulesDialog::onCancel() {
+    if (dirty_ && !confirmLose("cancel")) return;
+    reject();
+}
+
+#ifndef ALERTRULESDIALOG_H
+#define ALERTRULESDIALOG_H
+
+#include <QDialog>
+#include <QVector>
+#include <QString>
+
+#include "Thresholds.h"
+
+class QTableWidget;
+class QComboBox;
+class QLineEdit;
+class DBBridge;
+
+class AlertRulesDialog : public QDialog {
+    Q_OBJECT
+public:
+    explicit AlertRulesDialog(DBBridge* db, const QString& actor, QWidget* parent=nullptr);
+
+protected:
+    void closeEvent(QCloseEvent *e) override;
+
+private slots:
+    void onSave();
+    void onCancel();
+    void onFilterChanged();
+    void onSuggestTypes();    // 타입별 추천 (14d)
+    void onSuggestSensors();  // 센서별 추천 (14d)
+
+private:
+    void initUi();
+    void loadType();
+    void loadSensor();
+    bool collectType(QVector<TypeThreshold>& out) const;
+    bool collectSensor(QVector<SensorThreshold>& out) const;
+    bool confirmLose(const QString& what);
+    void markDirty(bool d);
+
+    // 콤보 헬퍼
+    QWidget* makeTypeCombo(const QString& current) const;
+    QWidget* makeSensorTypeCombo(const QString& current) const;
+    QString  comboValueAt(QTableWidget* tbl, int row, int col) const;
+
+    DBBridge* db_{};
+    QString actor_;
+    QTableWidget* tblType_{};
+    QTableWidget* tblSensor_{};
+    QComboBox* comboType_{};
+    QLineEdit* editFilter_{};
+    bool dirty_{false};
+};
+
+#endif // ALERTRULESDIALOG_H
+
+#include "AuditLogDialog.h"
+#include "DBBridge.h"
+
+#include <QVBoxLayout>
+#include <QHBoxLayout>
+#include <QLabel>
+#include <QDateTimeEdit>
+#include <QLineEdit>
+#include <QPushButton>
+#include <QTableWidget>
+#include <QHeaderView>
+#include <QFileDialog>
+#include <QFile>
+#include <QTextStream>
+#include <QMessageBox>
+
+static void styleCalendar(QDateTimeEdit* dt)
+{
+    if (!dt) return;
+    dt->setDisplayFormat("yyyy-MM-dd HH:mm:ss");
+    dt->setCalendarPopup(true);
+}
+
+AuditLogDialog::AuditLogDialog(DBBridge* db_,
+                               const QString& currentUser_,
+                               Role currentRole_,
+                               QWidget* parent)
+    : QDialog(parent),
+    db(db_),
+    currentUser(currentUser_),
+    currentRole(currentRole_)
+{
+    setWindowTitle("🧾 Audit Logs");
+    resize(900, 560);
+
+    onlyOwn   = (currentRole < Role::Admin);  // Admin 이상: 전체 조회 가능
+    canExport = (currentRole >= Role::Admin); // Admin 이상: CSV 내보내기 허용
+
+    auto *root = new QVBoxLayout(this);
+
+    // 필터 바
+    auto *flt = new QHBoxLayout();
+    dtFrom = new QDateTimeEdit(QDateTime::currentDateTime().addDays(-7), this);
+    dtTo   = new QDateTimeEdit(QDateTime::currentDateTime().addDays(+1), this);
+    styleCalendar(dtFrom); styleCalendar(dtTo);
+
+    edActor  = new QLineEdit(this);
+    edAction = new QLineEdit(this);
+    edActor->setPlaceholderText("actor (username)");
+    edAction->setPlaceholderText("action (contains)");
+
+    // 권한에 따라 actor 필드 동작
+    if (onlyOwn) {
+        edActor->setText(currentUser);
+        edActor->setEnabled(false);
+    }
+
+    auto *btnSearch = new QPushButton("Search", this);
+    btnExport = new QPushButton("Export CSV", this);
+    btnExport->setEnabled(canExport);
+
+    flt->addWidget(new QLabel("From:", this));
+    flt->addWidget(dtFrom);
+    flt->addWidget(new QLabel("To:", this));
+    flt->addWidget(dtTo);
+    flt->addWidget(new QLabel("Actor:", this));
+    flt->addWidget(edActor);
+    flt->addWidget(new QLabel("Action:", this));
+    flt->addWidget(edAction);
+    flt->addStretch(1);
+    flt->addWidget(btnSearch);
+    flt->addWidget(btnExport);
+
+    root->addLayout(flt);
+
+    // 표
+    table = new QTableWidget(this);
+    table->setColumnCount(6);
+    table->setHorizontalHeaderLabels({"ID","Time","Actor","Action","Target","Details"});
+    table->horizontalHeader()->setStretchLastSection(true);
+    table->setSelectionBehavior(QAbstractItemView::SelectRows);
+    table->setEditTriggers(QAbstractItemView::NoEditTriggers);
+    root->addWidget(table, 1);
+
+    connect(btnSearch, &QPushButton::clicked, this, &AuditLogDialog::refresh);
+    connect(btnExport, &QPushButton::clicked, this, &AuditLogDialog::exportCsv);
+
+    refresh();
+}
+
+void AuditLogDialog::refresh()
+{
+    if (!db) return;
+
+    const auto list = db->auditLogs(dtFrom->dateTime(), dtTo->dateTime(),
+                                    edActor->text().trimmed(),
+                                    edAction->text().trimmed(),
+                                    onlyOwn, currentUser, 2000);
+
+    table->setRowCount(list.size());
+    for (int i=0;i<list.size();++i) {
+        const auto& a = list[i];
+        table->setItem(i,0,new QTableWidgetItem(QString::number(a.id)));
+        table->setItem(i,1,new QTableWidgetItem(QDateTime::fromMSecsSinceEpoch(a.ts).toString("yyyy-MM-dd HH:mm:ss")));
+        table->setItem(i,2,new QTableWidgetItem(a.actor));
+        table->setItem(i,3,new QTableWidgetItem(a.action));
+        table->setItem(i,4,new QTableWidgetItem(a.target));
+        table->setItem(i,5,new QTableWidgetItem(a.details));
+    }
+    table->resizeColumnsToContents();
+}
+
+void AuditLogDialog::exportCsv()
+{
+    if (!canExport) {
+        QMessageBox::warning(this,"권한 없음","Admin 이상만 내보내기가 가능합니다.");
+        return;
+    }
+    const QString path = QFileDialog::getSaveFileName(this, tr("Export CSV"), QString(), tr("CSV Files (*.csv)"));
+    if (path.isEmpty()) return;
+
+    QFile f(path);
+    if (!f.open(QIODevice::WriteOnly | QIODevice::Text)) {
+        QMessageBox::warning(this, tr("Export"), tr("Cannot open file."));
+        return;
+    }
+
+    QTextStream out(&f);
+    out << "ID,Time,Actor,Action,Target,Details\n";
+    for (int r = 0; r < table->rowCount(); ++r) {
+        QStringList cols;
+        for (int c = 0; c < table->columnCount(); ++c) {
+            QString cell = table->item(r,c) ? table->item(r,c)->text() : QString();
+            cell.replace('"', "\"\"");
+            if (cell.contains(',') || cell.contains('"'))
+                cell = "\"" + cell + "\"";
+            cols << cell;
+        }
+        out << cols.join(",") << "\n";
+    }
+    f.close();
+    QMessageBox::information(this, "완료", "CSV로 내보냈습니다.");
+}
+
+#ifndef AUDITLOGDIALOG_H
+#define AUDITLOGDIALOG_H
+
+#include <QDialog>
+#include <QDateTime>
+
+#include "Role.h"
+
+class DBBridge;
+class QLineEdit;
+class QDateTimeEdit;
+class QTableWidget;
+class QPushButton;
+
+class AuditLogDialog : public QDialog {
+    Q_OBJECT
+public:
+    explicit AuditLogDialog(DBBridge* db,
+                            const QString& currentUser,
+                            Role currentRole,
+                            QWidget* parent = nullptr);
+private slots:
+    void refresh();
+    void exportCsv();
+
+private:
+    DBBridge*    db {};
+    QString      currentUser;
+    Role         currentRole {Role::Viewer};
+    bool         onlyOwn {true};
+    bool         canExport {false};
+
+    QDateTimeEdit* dtFrom {};
+    QDateTimeEdit* dtTo   {};
+    QLineEdit*     edActor {};
+    QLineEdit*     edAction {};
+    QTableWidget*  table {};
+    QPushButton*   btnExport {};
+};
+
+#endif // AUDITLOGDIALOG_H
+
+
+
+

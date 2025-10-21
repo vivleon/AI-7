@@ -1,0 +1,9 @@
+<RCC>
+  <qresource prefix="/">
+    <file>qml/MapView.qml</file>
+    <file>qml/SensorDot.qml</file>   
+    <file>img/vigiledge_banner.png</file>
+    <file alias="img/logo.png">img/logo.png</file>
+  </qresource>
+</RCC>
+

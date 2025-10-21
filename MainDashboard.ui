@@ -1,0 +1,285 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainDashboard</class>
+ <widget class="QMainWindow" name="MainDashboard">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>1600</width>
+    <height>900</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>VigilEdge - Main Dashboard</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <layout class="QVBoxLayout" name="verticalLayout">
+    <item>
+     <widget class="QStackedWidget" name="stackRoles">
+      <!-- Viewer -->
+      <widget class="QWidget" name="pageViewer">
+       <layout class="QVBoxLayout" name="vlViewer">
+        <item>
+         <widget class="QGroupBox" name="gbViewer">
+          <property name="title">
+           <string>Viewer - KPI</string>
+          </property>
+          <layout class="QVBoxLayout" name="vlV1">
+           <item>
+            <widget class="QLabel" name="lblViewer">
+             <property name="text">
+              <string>KPI Summary (읽기 전용)</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+
+      <!-- Operator -->
+      <widget class="QWidget" name="pageOperator">
+       <layout class="QVBoxLayout" name="vlOperator">
+        <item>
+         <widget class="QGroupBox" name="gbCharts">
+          <property name="title">
+           <string>Real-time Charts</string>
+          </property>
+          <layout class="QGridLayout" name="gridCharts">
+           <item row="0" column="0">
+            <widget class="QChartView" name="chartTemp">
+             <property name="minimumSize">
+              <size><width>200</width><height>220</height></size>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="1">
+            <widget class="QChartView" name="chartVib">
+             <property name="minimumSize">
+              <size><width>200</width><height>220</height></size>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="0" colspan="2">
+            <widget class="QChartView" name="chartIntr">
+             <property name="minimumSize">
+              <size><width>400</width><height>240</height></size>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </item>
+
+        <item>
+         <widget class="QGroupBox" name="gbFilter">
+          <property name="title">
+           <string>Log Filter</string>
+          </property>
+          <layout class="QGridLayout" name="gridFilter">
+           <item row="0" column="0">
+            <widget class="QLabel" name="lblType">
+             <property name="text"><string>Type</string></property>
+            </widget>
+           </item>
+           <item row="0" column="1">
+            <widget class="QComboBox" name="comboType">
+             <item><property name="text"><string>All</string></property></item>
+             <item><property name="text"><string>TEMP</string></property></item>
+             <item><property name="text"><string>VIB</string></property></item>
+             <item><property name="text"><string>INTR</string></property></item>
+            </widget>
+           </item>
+
+           <item row="0" column="2">
+            <widget class="QLabel" name="lblLevel">
+             <property name="text"><string>Level</string></property>
+            </widget>
+           </item>
+           <item row="0" column="3">
+            <widget class="QComboBox" name="comboLevel">
+             <item><property name="text"><string>All</string></property></item>
+             <item><property name="text"><string>LOW</string></property></item>
+             <item><property name="text"><string>MEDIUM</string></property></item>
+             <item><property name="text"><string>HIGH</string></property></item>
+            </widget>
+           </item>
+
+           <item row="0" column="4">
+            <widget class="QLabel" name="lblVMin">
+             <property name="text"><string>Value Min</string></property>
+            </widget>
+           </item>
+           <item row="0" column="5">
+            <widget class="QLineEdit" name="lineMin"/>
+           </item>
+
+           <item row="0" column="6">
+            <widget class="QLabel" name="lblVMax">
+             <property name="text"><string>Value Max</string></property>
+            </widget>
+           </item>
+           <item row="0" column="7">
+            <widget class="QLineEdit" name="lineMax"/>
+           </item>
+
+           <item row="1" column="0">
+            <widget class="QLabel" name="lblContains">
+             <property name="text"><string>SensorId contains</string></property>
+            </widget>
+           </item>
+           <item row="1" column="1" colspan="3">
+            <widget class="QLineEdit" name="lineSearch"/>
+           </item>
+
+           <item row="1" column="4">
+            <widget class="QLabel" name="lblFrom">
+             <property name="text"><string>From</string></property>
+            </widget>
+           </item>
+           <item row="1" column="5">
+            <widget class="QDateTimeEdit" name="dtFrom">
+             <property name="calendarPopup"><bool>true</bool></property>
+            </widget>
+           </item>
+           <item row="1" column="6">
+            <widget class="QLabel" name="lblTo">
+             <property name="text"><string>To</string></property>
+            </widget>
+           </item>
+           <item row="1" column="7">
+            <widget class="QDateTimeEdit" name="dtTo">
+             <property name="calendarPopup"><bool>true</bool></property>
+            </widget>
+           </item>
+
+           <item row="2" column="0" colspan="8">
+            <layout class="QHBoxLayout" name="hlButtons">
+             <item>
+              <widget class="QPushButton" name="btnApplyFilter">
+               <property name="text"><string>Apply</string></property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="btnResetFilter">
+               <property name="text"><string>Reset</string></property>
+              </widget>
+             </item>
+             <item>
+              <spacer name="sp1">
+               <property name="orientation"><enum>Qt::Horizontal</enum></property>
+               <property name="sizeHint" stdset="0"><size><width>0</width><height>0</height></size></property>
+              </spacer>
+             </item>
+             <item><widget class="QPushButton" name="btnTempOn"><property name="text"><string>TEMP ON</string></property></widget></item>
+             <item><widget class="QPushButton" name="btnTempOff"><property name="text"><string>TEMP OFF</string></property></widget></item>
+             <item><widget class="QPushButton" name="btnVibOn"><property name="text"><string>VIB ON</string></property></widget></item>
+             <item><widget class="QPushButton" name="btnVibOff"><property name="text"><string>VIB OFF</string></property></widget></item>
+             <item><widget class="QPushButton" name="btnIntrOn"><property name="text"><string>INTR ON</string></property></widget></item>
+             <item><widget class="QPushButton" name="btnIntrOff"><property name="text"><string>INTR OFF</string></property></widget></item>
+             <item><widget class="QPushButton" name="btnExport"><property name="text"><string>Export</string></property></widget></item>
+            </layout>
+           </item>
+          </layout>
+         </widget>
+        </item>
+
+        <item>
+         <widget class="QTableView" name="logView"/>
+        </item>
+       </layout>
+      </widget>
+
+      <!-- Analyst -->
+      <widget class="QWidget" name="pageAnalyst">
+       <layout class="QVBoxLayout" name="vlAnalyst">
+        <item>
+         <widget class="QLabel" name="lblAnalyst">
+          <property name="text">
+           <string>Analyst: Trend / XAI / Report (TODO)</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+
+      <!-- Admin -->
+      <widget class="QWidget" name="pageAdmin">
+       <layout class="QVBoxLayout" name="vlAdmin">
+        <item>
+         <widget class="QGroupBox" name="gbUsers">
+          <property name="title">
+           <string>User Management</string>
+          </property>
+          <layout class="QGridLayout" name="gridUsers">
+           <item row="0" column="0" colspan="4">
+            <widget class="QTableWidget" name="tblUsers"/>
+           </item>
+
+           <item row="1" column="0">
+            <widget class="QComboBox" name="comboNewRole">
+             <item><property name="text"><string>Viewer</string></property></item>
+             <item><property name="text"><string>Operator</string></property></item>
+             <item><property name="text"><string>Analyst</string></property></item>
+             <item><property name="text"><string>Admin</string></property></item>
+             <item><property name="text"><string>SuperAdmin</string></property></item>
+            </widget>
+           </item>
+
+           <item row="1" column="1">
+            <widget class="QPushButton" name="btnAssignRole">
+             <property name="text"><string>Assign Role</string></property>
+            </widget>
+           </item>
+
+           <!-- ✅ 추가: SuperAdmin용 암호 초기화 버튼 -->
+           <item row="1" column="2">
+            <widget class="QPushButton" name="btnResetPwd">
+             <property name="text"><string>Reset Password</string></property>
+            </widget>
+           </item>
+
+           <item row="1" column="3">
+            <spacer name="spAdmin">
+             <property name="orientation"><enum>Qt::Horizontal</enum></property>
+             <property name="sizeHint" stdset="0"><size><width>40</width><height>20</height></size></property>
+            </spacer>
+           </item>
+          </layout>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+
+     </widget>
+    </item>
+   </layout>
+  </widget>
+
+  <widget class="QMenuBar" name="menubar">
+   <property name="geometry">
+    <rect><x>0</x><y>0</y><width>1600</width><height>23</height></rect>
+   </property>
+  </widget>
+  <widget class="QStatusBar" name="statusbar"/>
+
+  <action name="actionViewer"><property name="text"><string>Viewer</string></property></action>
+  <action name="actionOperator"><property name="text"><string>Operator</string></property></action>
+  <action name="actionAnalyst"><property name="text"><string>Analyst</string></property></action>
+  <action name="actionAdmin"><property name="text"><string>Admin</string></property></action>
+
+ </widget>
+
+ <customwidgets>
+  <customwidget>
+   <class>QChartView</class>
+   <extends>QGraphicsView</extends>
+   <header>QtCharts/QChartView</header>
+  </customwidget>
+ </customwidgets>
+ <resources/>
+ <connections/>
+</ui>
+
