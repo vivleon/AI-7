@@ -1,0 +1,1159 @@
+<!DOCTYPE html>
+<html lang="ko" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hyeonjun Na | Software Developer</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <!-- Chosen Palette: Warm Neutrals -->
+    <!-- Application Structure Plan: A single-page, vertical-scrolling application with thematic sections (Home, About, Skills, Projects, Contact). This structure tells a cohesive story, starting with a broad introduction and progressively diving deeper into technical skills and project experiences. The core interaction is the project section, where users can filter projects by technology and view details in a modal window. This approach keeps the main interface clean and user-friendly while providing rich, on-demand information, which is ideal for recruiters who want to quickly assess specific skills. -->
+    <!-- Visualization & Content Choices: The primary visualization is a horizontal bar chart for skills overview using Chart.js, chosen for its clarity in comparing proficiency levels. Report Info: Skillset derived from project analysis -> Goal: Compare technical proficiency -> Viz/Presentation: Chart.js Horizontal Bar Chart (Canvas) -> Interaction: Tooltips on hover -> Justification: Provides a quick, quantitative summary of abilities. For projects, a filterable grid of cards leading to detailed modals was chosen. Report Info: 6 project reports -> Goal: Organize and detail experiences -> Viz/Presentation: Interactive Card Grid & Modals (HTML/CSS/JS) -> Interaction: Click to filter, click to open details -> Justification: Allows users to self-direct their exploration based on interest (e.g., only C++ projects) without overwhelming them with information upfront. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+        }
+        .en-font {
+            font-family: 'Roboto', sans-serif;
+        }
+        html.dark {
+            color-scheme: dark;
+        }
+        .section-title {
+            @apply text-3xl font-bold text-center mb-2;
+        }
+        .section-subtitle {
+            @apply text-center mb-12;
+        }
+        .nav-link {
+            @apply px-4 py-2 hover:text-teal-600 dark:hover:text-teal-400 transition-colors duration-300;
+        }
+        .project-card {
+            @apply rounded-lg shadow-lg overflow-hidden transform hover:-translate-y-2 transition-transform duration-300;
+        }
+        .project-tag {
+            @apply inline-block text-xs font-semibold mr-2 mb-2 px-2.5 py-0.5 rounded-full;
+        }
+        .filter-btn {
+            @apply px-4 py-2 text-sm font-medium rounded-md transition-colors duration-200;
+        }
+        #projectModal, #imageModal {
+            -webkit-backdrop-filter: blur(5px);
+            backdrop-filter: blur(5px);
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 400px;
+            max-height: 50vh;
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 500px;
+            }
+        }
+        .timeline {
+            position: relative;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        .timeline::after {
+            content: '';
+            position: absolute;
+            width: 3px;
+            top: 0;
+            bottom: 0;
+            left: 50%;
+            margin-left: -1.5px;
+            @apply bg-gray-200 dark:bg-gray-700;
+        }
+        .timeline-item {
+            padding: 10px 40px;
+            position: relative;
+            width: 50%;
+        }
+        .timeline-item::after {
+            content: '';
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            right: -10px;
+            border: 4px solid #14b8a6;
+            top: 28px;
+            border-radius: 50%;
+            z-index: 1;
+            @apply bg-white dark:bg-gray-800;
+        }
+        .timeline-left { left: 0; }
+        .timeline-right { left: 50%; }
+        .timeline-left::before {
+            content: " "; height: 0; position: absolute; top: 32px; width: 0; z-index: 1; right: 30px;
+            border: medium solid; border-width: 10px 0 10px 10px;
+            @apply border-transparent border-l-white dark:border-l-gray-700;
+        }
+        .timeline-right::before {
+            content: " "; height: 0; position: absolute; top: 32px; width: 0; z-index: 1; left: 30px;
+            border: medium solid; border-width: 10px 10px 10px 0;
+            @apply border-transparent border-r-white dark:border-r-gray-700;
+        }
+        .timeline-right::after { left: -10px; }
+        .timeline-content {
+            padding: 20px 30px;
+            position: relative;
+            border-radius: 6px;
+            @apply bg-white dark:bg-gray-700 shadow-md;
+        }
+        .full-page-section {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            padding-top: 5rem;
+            padding-bottom: 5rem;
+        }
+         @media screen and (max-width: 768px) {
+            .timeline::after { left: 20px; }
+            .timeline-item { width: 100%; padding-left: 60px; padding-right: 15px; }
+            .timeline-item::before {
+                left: 50px; border-width: 10px 10px 10px 0;
+                @apply border-transparent border-r-white dark:border-r-gray-700;
+            }
+            .timeline-left::after, .timeline-right::after { left: 10px; }
+            .timeline-right { left: 0%; }
+            .full-page-section {
+                min-height: auto;
+                padding-top: 4rem;
+                padding-bottom: 4rem;
+            }
+        }
+        @media print {
+            body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            header, footer, #projectModal, #imageModal { display: none; }
+            .full-page-section {
+                page-break-after: always;
+                min-height: 98vh;
+                height: 98vh;
+                padding: 2rem 0;
+            }
+            section:last-of-type {
+                page-break-after: avoid;
+            }
+        }
+    </style>
+</head>
+<body class="bg-stone-50 text-gray-800 dark:bg-gray-900 dark:text-gray-200 transition-colors duration-300">
+
+    <header id="header" class="bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm sticky top-0 z-40 shadow-sm">
+        <nav class="container mx-auto px-6 py-3 flex justify-between items-center">
+            <a href="#home" class="flex items-center">
+                <alt="VivLeoN Logo" class="h-8 w-auto">
+            </a>
+            <div class="hidden md:flex items-center space-x-2">
+                <a href="#about" class="nav-link" data-lang-key="nav_about">About Me</a>
+                <a href="#journey" class="nav-link" data-lang-key="nav_journey">Career Journey</a>
+                <a href="#skills" class="nav-link" data-lang-key="nav_skills">Skills</a>
+                <a href="#projects" class="nav-link" data-lang-key="nav_projects">Projects</a>
+                <a href="#contact" class="nav-link" data-lang-key="nav_contact">Contact</a>
+                <div class="flex items-center border-l border-gray-200 dark:border-gray-700 ml-4 pl-4 space-x-4">
+                    <button id="lang-toggle" class="text-gray-600 dark:text-gray-300 hover:text-teal-600 dark:hover:text-teal-400 transition-colors">
+                        <span class="text-sm font-medium">KO/EN</span>
+                    </button>
+                    <button id="theme-toggle" class="text-gray-600 dark:text-gray-300 hover:text-teal-600 dark:hover:text-teal-400 transition-colors">
+                        <svg id="theme-icon-light" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.707.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 14.95a1 1 0 10-1.414-1.414l-.707.707a1 1 0 001.414 1.414l.707-.707zm-2.12-10.607a1 1 0 010-1.414l.707-.707a1 1 0 111.414 1.414l-.707.707a1 1 0 01-1.414 0zM3 11a1 1 0 100-2H2a1 1 0 100 2h1z"/></svg>
+                        <svg id="theme-icon-dark" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 hidden" viewBox="0 0 20 20" fill="currentColor"><path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"/></svg>
+                    </button>
+                </div>
+            </div>
+            <button id="mobile-menu-button" class="md:hidden p-2 text-gray-600 dark:text-gray-300">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7" /></svg>
+            </button>
+        </nav>
+        <div id="mobile-menu" class="hidden md:hidden bg-white dark:bg-gray-800">
+            <a href="#about" class="block text-center py-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700" data-lang-key="nav_about_mobile">About Me</a>
+            <a href="#journey" class="block text-center py-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700" data-lang-key="nav_journey_mobile">Career Journey</a>
+            <a href="#skills" class="block text-center py-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700" data-lang-key="nav_skills_mobile">Skills</a>
+            <a href="#projects" class="block text-center py-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700" data-lang-key="nav_projects_mobile">Projects</a>
+            <a href="#contact" class="block text-center py-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700" data-lang-key="nav_contact_mobile">Contact</a>
+            <div class="border-t border-gray-200 dark:border-gray-700 py-2 flex justify-center space-x-8">
+                 <button id="lang-toggle-mobile" class="text-gray-600 dark:text-gray-300 hover:text-teal-600 dark:hover:text-teal-400 transition-colors">
+                        <span class="text-sm font-medium">KO/EN</span>
+                    </button>
+                    <button id="theme-toggle-mobile" class="text-gray-600 dark:text-gray-300 hover:text-teal-600 dark:hover:text-teal-400 transition-colors">
+                        <svg id="theme-icon-light-mobile" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.707.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 14.95a1 1 0 10-1.414-1.414l-.707.707a1 1 0 001.414 1.414l.707-.707zm-2.12-10.607a1 1 0 010-1.414l.707-.707a1 1 0 111.414 1.414l-.707.707a1 1 0 01-1.414 0zM3 11a1 1 0 100-2H2a1 1 0 100 2h1z"/></svg>
+                        <svg id="theme-icon-dark-mobile" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 hidden" viewBox="0 0 20 20" fill="currentColor"><path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"/></svg>
+                    </button>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <section id="home" class="h-screen flex items-center justify-center bg-white dark:bg-gray-900">
+            <div class="text-center px-4">
+                <h1 class="text-5xl md:text-7xl font-bold text-gray-900 dark:text-white mb-4" data-lang-key="home_name">나현준 (Hyeonjun Na)</h1>
+                <p class="text-xl md:text-2xl text-teal-600 dark:text-teal-400 font-medium mb-8" data-lang-key="home_title">Software Developer</p>
+                <p class="max-w-2xl mx-auto text-gray-600 dark:text-gray-300 mb-8" data-lang-key="home_subtitle">
+                    문제를 정의하고 기술로 해결하는 과정에 열정을 가진 개발자입니다.<br>견고한 아키텍처와 안정적인 코드로 아이디어를 현실로 만듭니다.
+                </p>
+                <div class="flex justify-center items-center space-x-6">
+                    <a href="https://github.com/vivleon" target="_blank" class="text-gray-500 dark:text-gray-400 hover:text-teal-600 dark:hover:text-teal-400 transition-colors">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
+                    </a>
+                    <a href="https://www.linkedin.com/in/vivranium/" target="_blank" class="text-gray-500 dark:text-gray-400 hover:text-teal-600 dark:hover:text-teal-400 transition-colors">
+                         <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="currentColor"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/></svg>
+                    </a>
+                </div>
+            </div>
+        </section>
+        
+        <section id="about" class="full-page-section bg-white dark:bg-gray-900">
+            <div class="container mx-auto px-6">
+                <h2 class="section-title text-gray-800 dark:text-white" data-lang-key="about_title">About Me</h2>
+                <p class="section-subtitle text-gray-500 dark:text-gray-400" data-lang-key="about_subtitle">A Developer Who Solves Problems with Passion and Technology.</p>
+                <div class="max-w-4xl mx-auto flex flex-col md:flex-row items-center gap-12">
+                    <div class="md:w-1/3 text-center">
+                        <img src="https://i.ibb.co/yn8qfCgt/logo.png" alt="VivLeoN Logo" class="rounded-full shadow-lg mx-auto w-48 h-48 md:w-64 md:h-64 object-cover">
+                    </div>
+                    <div class="md:w-2/3">
+                        <p class="text-lg font-semibold text-teal-700 dark:text-teal-400 mb-2" data-lang-key="about_greeting">안녕하세요, 나현준입니다.</p>
+                        <p class="text-gray-700 dark:text-gray-300 leading-relaxed mb-4" data-lang-key="about_p1">
+                            저는 하나의 아이디어가 견고한 소프트웨어로 탄생하는 모든 과정에 깊은 열정을 가지고 있습니다. 복잡한 요구사항을 논리적으로 분석하여 최적의 아키텍처를 설계하고, 안정적인 코드로 구현해내는 것에 강점이 있습니다.
+                        </p>
+                        <p class="text-gray-700 dark:text-gray-300 leading-relaxed mb-4" data-lang-key="about_p2">
+                            다양한 개인 및 팀 프로젝트를 통해 C++, C#, C, Python 등 여러 언어와 WinForms, Qt, ASP.NET Core와 같은 프레임워크를 다루며 폭넓은 기술 스택을 쌓았습니다. 특히 **새로운 기술을 빠르게 학습하고 프로젝트에 적용하는 능력**과, 팀원들과의 **적극적인 소통을 통해 시너지를 만드는 협업 능력**은 저의 가장 큰 자산입니다.
+                        </p>
+                        <p class="text-gray-700 dark:text-gray-300 leading-relaxed" data-lang-key="about_p3">
+                            저는 단순히 기능을 만드는 개발자를 넘어, 사용자의 입장에서 더 나은 경험을 고민하고 비즈니스의 성장에 기여하는 **'솔루션 아키텍트(Solution Architect)'**로 성장하는 것을 목표로 하고 있습니다. 기술의 깊이를 더하고 넓이를 확장하며, 어떤 문제든 신뢰할 수 있는 해결책을 제시하는 개발자가 되겠습니다.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="journey" class="full-page-section">
+            <div class="container mx-auto px-6">
+                <h2 class="section-title text-gray-800 dark:text-white" data-lang-key="journey_title">Career Journey</h2>
+                <p class="section-subtitle text-gray-500 dark:text-gray-400" data-lang-key="journey_subtitle">My Path from Finance to Software Development.</p>
+                
+                <div class="timeline">
+                    <div class="timeline-item timeline-left">
+                        <div class="timeline-content">
+                            <h3 class="font-bold text-lg text-teal-700 dark:text-teal-400" data-lang-key="journey1_title">Career Break & Self-Improvement</h3>
+                            <p class="text-sm text-gray-500 dark:text-gray-400 mb-2">Apr 2023 - Present</p>
+                            <p class="text-gray-600 dark:text-gray-300" data-lang-key="journey1_desc">'AIOT 인공지능 기반 서비스 플랫폼 개발자 과정'과 '빅데이터 전문가 1급' 과정을 이수하며 최신 기술 스택을 심도 있게 학습했습니다. 이 기간 동안 아시아(한국, 중국, 태국)를 여행하며 다양한 스타트업 관계자들과 교류하고 글로벌 시장 트렌드에 대한 인사이트를 얻으며 기술 역량과 비즈니스 감각을 동시에 강화했습니다.</p>
+                        </div>
+                    </div>
+                    <div class="timeline-item timeline-right">
+                        <div class="timeline-content">
+                            <h3 class="font-bold text-lg text-teal-700 dark:text-teal-400" data-lang-key="journey2_title">Finance Accountant</h3>
+                            <p class="text-sm text-gray-500 dark:text-gray-400 mb-2">Sep 2020 - Mar 2023 · Kumhotire Georgia Inc</p>
+                            <p class="text-gray-600 dark:text-gray-300" data-lang-key="journey2_desc">글로벌 제조 기업의 재무기획팀에서 SAP 및 MS Office를 활용하여 회계, 감사, 재무 관리 업무를 담당했습니다. 이를 통해 비즈니스 프로세스와 데이터 기반 의사결정에 대한 깊은 이해를 갖추게 되었습니다.</p>
+                        </div>
+                    </div>
+                    <div class="timeline-item timeline-left">
+                        <div class="timeline-content">
+                            <h3 class="font-bold text-lg text-teal-700 dark:text-teal-400" data-lang-key="journey3_title">University of Wisconsin-Madison</h3>
+                            <p class="text-sm text-gray-500 dark:text-gray-400 mb-2">Sep 2018 - Dec 2020</p>
+                            <p class="text-gray-600 dark:text-gray-300" data-lang-key="journey3_desc">경제학 학사 학위를 취득하며 분석적 사고와 문제 해결 능력을 길렀습니다. 이는 기술적 문제 해결의 논리적 기반이 되었습니다.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="certifications" class="full-page-section bg-white dark:bg-gray-900">
+             <div class="container mx-auto px-6">
+                <div class="max-w-5xl mx-auto">
+                    <h3 class="section-title text-gray-800 dark:text-white" data-lang-key="licenses_title">Licenses & Certifications</h3>
+                     <p class="section-subtitle text-gray-500 dark:text-gray-400">My official credentials and completed courses.</p>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mt-12">
+                        <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md flex items-center gap-4">
+                             <div class="flex-shrink-0 w-12 h-12 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center font-bold text-xl">BD</div>
+                            <div>
+                                <h4 class="font-bold" data-lang-key="license3_title">Big Data Specialist Level 1</h4>
+                                <p class="text-sm text-gray-600 dark:text-gray-400" data-lang-key="license3_issuer">License Issued Nov 2025</p>
+                            </div>
+                        </div>
+                        <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md flex items-center gap-4">
+                            <div class="flex-shrink-0 w-12 h-12 bg-teal-100 text-teal-600 rounded-full flex items-center justify-center font-bold text-xl">AI</div>
+                            <div>
+                                <h4 class="font-bold">Google AI Essentials</h4>
+                                <p class="text-sm text-gray-600 dark:text-gray-400" data-lang-key="license1_issuer">Issued by Google, Jul 2025</p>
+                                <a href="https://www.coursera.org/account/accomplishments/verify/1IT35PHNXVTE" target="_blank" class="text-sm text-teal-600 hover:underline" data-lang-key="show_credential">Show credential</a>
+                            </div>
+                        </div>
+                        <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md flex items-center gap-4">
+                            <div class="flex-shrink-0 w-12 h-12 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 rounded-full flex items-center justify-center font-bold">UW</div>
+                            <div>
+                                <h4 class="font-bold">UW-Madison CDIS</h4>
+                                <p class="text-sm text-gray-600 dark:text-gray-400" data-lang-key="license2_issuer">Issued by University of Wisconsin-Madison, Dec 2020</p>
+				<p class="text-sm text-gray-600 dark:text-gray-400" data-lang-key="license2_key"><b>211X-M6L0-HIA6</b> </p>
+                                <a href="https://apps2.registrar.wisc.edu/cediploma/" target="_blank" class="text-sm text-teal-600 hover:underline" data-lang-key="show_credential">Show credential</a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <h3 class="section-title text-gray-800 dark:text-white mt-20" data-lang-key="additional_skills_title">Languages & Additional Skills</h3>
+                    <p class="section-subtitle text-gray-500 dark:text-gray-400">Communication and business-related skills.</p>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mt-12">
+                        <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
+                            <h4 class="font-bold text-lg mb-4" data-lang-key="languages_title">Languages</h4>
+                            <ul class="space-y-2 text-gray-600 dark:text-gray-300">
+                                <li><span class="font-semibold">Korean:</span> <span data-lang-key="lang_kr">Native or bilingual proficiency</span></li>
+                                <li><span class="font-semibold">English:</span> <span data-lang-key="lang_en">Full professional proficiency</span></li>
+                                <li><span class="font-semibold">Japanese:</span> <span data-lang-key="lang_jp">Limited working proficiency</span></li>
+                                <li><span class="font-semibold">Chinese, French, Thai, Vietnamese:</span> <span data-lang-key="lang_etc">Elementary proficiency</span></li>
+                            </ul>
+                        </div>
+                        <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
+                            <h4 class="font-bold text-lg mb-4" data-lang-key="business_acumen_title">Finance & Business Acumen</h4>
+                            <div class="flex flex-wrap gap-2">
+                                <span class="project-tag bg-teal-100 text-teal-800 dark:bg-teal-900 dark:text-teal-200" data-lang-key="skill_fa">재무 회계</span>
+                                <span class="project-tag bg-teal-100 text-teal-800 dark:bg-teal-900 dark:text-teal-200" data-lang-key="skill_fr">재무보고</span>
+                                <span class="project-tag bg-teal-100 text-teal-800 dark:bg-teal-900 dark:text-teal-200" data-lang-key="skill_fa2">고정자산</span>
+                                <span class="project-tag bg-teal-100 text-teal-800 dark:bg-teal-900 dark:text-teal-200" data-lang-key="skill_cf">현금흐름</span>
+                                <span class="project-tag bg-teal-100 text-teal-800 dark:bg-teal-900 dark:text-teal-200" data-lang-key="skill_dm">채무관리</span>
+                                <span class="project-tag bg-teal-100 text-teal-800 dark:bg-teal-900 dark:text-teal-200" data-lang-key="skill_im">재고관리</span>
+                                <span class="project-tag bg-teal-100 text-teal-800 dark:bg-teal-900 dark:text-teal-200">IFRS</span>
+                                <span class="project-tag bg-teal-100 text-teal-800 dark:bg-teal-900 dark:text-teal-200">SAP ERP</span>
+                                <span class="project-tag bg-teal-100 text-teal-800 dark:bg-teal-900 dark:text-teal-200" data-lang-key="skill_om">운영관리</span>
+                                <span class="project-tag bg-teal-100 text-teal-800 dark:bg-teal-900 dark:text-teal-200" data-lang-key="skill_as">분석능력</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="activities" class="full-page-section">
+            <div class="container mx-auto px-6">
+                <h2 class="section-title text-gray-800 dark:text-white" data-lang-key="activities_title">Activities & Photos</h2>
+                <p class="section-subtitle text-gray-500 dark:text-gray-400" data-lang-key="activities_subtitle">Moments from my journey and events.</p>
+                <div class="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+                    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg overflow-hidden">
+                        <img loading="lazy" decoding="async" src="https://i.ibb.co/G4PKtf6p/Kakao-Talk-20251021-144822357.jpg" alt="Activity 1" class="w-full h-48 object-cover cursor-pointer gallery-image">
+                        <div class="p-4">
+                            <p class="text-sm text-gray-600 dark:text-gray-400" data-lang-key="activity1_desc">Description for the first event or activity.</p>
+                        </div>
+                    </div>
+                    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg overflow-hidden">
+                        <img loading="lazy" decoding="async" src="https://i.ibb.co/21ZdhHXV/Kakao-Talk-20251021-144436640-02.jpg" alt="Activity 2" class="w-full h-48 object-cover cursor-pointer gallery-image">
+                        <div class="p-4">
+                            <p class="text-sm text-gray-600 dark:text-gray-400" data-lang-key="activity2_desc">Showcasing a project at a tech fair.</p>
+                        </div>
+                    </div>
+                    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg overflow-hidden">
+                        <img loading="lazy" decoding="async" src="https://i.ibb.co/h1VT709W/Kakao-Talk-20251021-144436640-01.jpg" alt="Activity 3" class="w-full h-48 object-cover cursor-pointer gallery-image">
+                        <div class="p-4">
+                           <p class="text-sm text-gray-600 dark:text-gray-400" data-lang-key="activity3_desc">Team collaboration session during a hackathon.</p>
+                        </div>
+                    </div>
+                    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg overflow-hidden">
+                        <img loading="lazy" decoding="async" src="https://i.ibb.co/212pgGWF/Kakao-Talk-20251021-144339550-01.jpg" alt="Activity 4" class="w-full h-48 object-cover cursor-pointer gallery-image">
+                        <div class="p-4">
+                           <p class="text-sm text-gray-600 dark:text-gray-400" data-lang-key="activity4_desc">Networking event with industry professionals.</p>
+                        </div>
+                    </div>
+                    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg overflow-hidden">
+                        <img loading="lazy" decoding="async" src="https://i.ibb.co/p6H5pRZF/Kakao-Talk-20251021-144339550-04.jpg" alt="Activity 5" class="w-full h-48 object-cover cursor-pointer gallery-image">
+                        <div class="p-4">
+                           <p class="text-sm text-gray-600 dark:text-gray-400" data-lang-key="activity5_desc">Receiving a certificate for a completed course.</p>
+                        </div>
+                    </div>
+                     <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg overflow-hidden">
+                        <img loading="lazy" decoding="async" src="https://i.ibb.co/JRSpkpVk/Kakao-Talk-20251021-144339550-02.jpg" alt="Activity 6" class="w-full h-48 object-cover cursor-pointer gallery-image">
+                        <div class="p-4">
+                           <p class="text-sm text-gray-600 dark:text-gray-400" data-lang-key="activity6_desc">Casual team discussion moment.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="skills" class="full-page-section bg-white dark:bg-gray-900">
+            <div class="container mx-auto px-6">
+                <h2 class="section-title text-gray-800 dark:text-white" data-lang-key="tech_skills_title">Technical Skills</h2>
+                <p class="section-subtitle text-gray-500 dark:text-gray-400" data-lang-key="tech_skills_subtitle">My Technical Expertise and Capabilities.</p>
+                <div class="max-w-5xl mx-auto">
+                    <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg mb-12">
+                       <div class="chart-container">
+                            <canvas id="skillsChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 text-center">
+                        <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
+                            <h3 class="font-bold text-lg mb-2" data-lang-key="skill_cat_lang">Languages</h3>
+                            <div class="flex flex-wrap gap-2 justify-center">
+                                <span class="project-tag bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">C++</span>
+                                <span class="project-tag bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">C#</span>
+                                <span class="project-tag bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">C</span>
+                                <span class="project-tag bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">Python</span>
+                            </div>
+                        </div>
+                        <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
+                            <h3 class="font-bold text-lg mb-2" data-lang-key="skill_cat_fw">Frameworks & Libraries</h3>
+                             <div class="flex flex-wrap gap-2 justify-center">
+                                <span class="project-tag bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">.NET WinForms</span>
+                                <span class="project-tag bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">Qt</span>
+                                <span class="project-tag bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">ASP.NET Core</span>
+                                <span class="project-tag bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">SignalR</span>
+                                <span class="project-tag bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">Entity Framework Core</span>
+                            </div>
+                        </div>
+                        <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
+                            <h3 class="font-bold text-lg mb-2" data-lang-key="skill_cat_db">Databases</h3>
+                             <div class="flex flex-wrap gap-2 justify-center">
+                                <span class="project-tag bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200">MySQL</span>
+                                <span class="project-tag bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200">SQLite</span>
+                            </div>
+                        </div>
+                        <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
+                            <h3 class="font-bold text-lg mb-2" data-lang-key="skill_cat_tools">Tools & Etc.</h3>
+                            <div class="flex flex-wrap gap-2 justify-center">
+                                <span class="project-tag bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200">Git</span>
+                                <span class="project-tag bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200">Visual Studio</span>
+                                <span class="project-tag bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200">Qt Creator</span>
+                                <span class="project-tag bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200">Arduino</span>
+                                <span class="project-tag bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200">TCP/IP</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="projects" class="full-page-section">
+            <div class="container mx-auto px-6">
+                <h2 class="section-title text-gray-800 dark:text-white" data-lang-key="projects_title">Projects</h2>
+                <p class="section-subtitle text-gray-500 dark:text-gray-400" data-lang-key="projects_subtitle">A Showcase of My Passion and Work.</p>
+                <div id="project-filters" class="flex justify-center flex-wrap gap-2 mb-10">
+                    <button class="filter-btn active" data-filter="all" data-lang-key="filter_all">All</button>
+                    <button class="filter-btn" data-filter="csharp">C#</button>
+                    <button class="filter-btn" data-filter="cpp">C++</button>
+                    <button class="filter-btn" data-filter="c">C</button>
+                    <button class="filter-btn" data-filter="python">Python</button>
+                </div>
+                <div id="project-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                </div>
+            </div>
+        </section>
+        
+        <section id="contact" class="full-page-section bg-white dark:bg-gray-900">
+            <div class="container mx-auto px-6 text-center">
+                <h2 class="section-title text-gray-800 dark:text-white" data-lang-key="contact_title">Contact</h2>
+                <p class="section-subtitle text-gray-500 dark:text-gray-400" data-lang-key="contact_subtitle">If you'd like to discuss my potential further, please don't hesitate to reach out.</p>
+                <div class="max-w-md mx-auto">
+                    <img src="https://i.ibb.co/yn8qfCgt/logo.png" alt="VivLeoN Logo" class="h-40 w-auto mx-auto mb-8">
+                    <div class="space-y-4">
+                        <p class="flex items-center justify-center text-lg">
+                           <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3 text-teal-500" viewBox="0 0 20 20" fill="currentColor"><path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" /><path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" /></svg>
+                           <a href="mailto:vivleon0510@gmail.com" class="text-gray-600 dark:text-gray-300 hover:underline">vivleon0510@gmail.com</a>
+                        </p>
+                        <p class="flex items-center justify-center text-lg">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3 text-teal-500" viewBox="0 0 20 20" fill="currentColor"><path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z" /></svg>
+                            <a href="tel:010-7601-0510" class="text-gray-600 dark:text-gray-300 hover:underline">010-7601-0510</a>
+                        </p>
+                    </div>
+                    <div class="flex justify-center items-center space-x-8 mt-10">
+                       <a href="https://github.com/vivleon" target="_blank" class="text-gray-500 dark:text-gray-400 hover:text-teal-600 dark:hover:text-teal-400 transition-colors">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
+                        </a>
+                        <a href="https://www.linkedin.com/in/vivranium/" target="_blank" class="text-gray-500 dark:text-gray-400 hover:text-teal-600 dark:hover:text-teal-400 transition-colors">
+                             <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="currentColor"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/></svg>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="bg-gray-800 text-white py-6">
+        <div class="container mx-auto px-6 text-center text-sm">
+            <p>&copy; 2025 Hyeonjun Na. All Rights Reserved.</p>
+        </div>
+    </footer>
+    
+    <div id="projectModal" class="fixed inset-0 bg-black/50 dark:bg-black/70 z-50 hidden items-center justify-center p-4">
+        <div id="modalContent" class="bg-white dark:bg-gray-800 rounded-lg shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto relative">
+            <button id="closeModal" class="absolute top-4 right-4 text-gray-500 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+            <div class="p-8">
+                <h3 id="modalTitle" class="text-2xl font-bold mb-2 text-gray-900 dark:text-white"></h3>
+                <p id="modalDuration" class="text-sm text-gray-500 dark:text-gray-400 mb-4"></p>
+                <div id="modalTags" class="mb-6"></div>
+                <div id="modalBody" class="prose dark:prose-invert max-w-none text-gray-700 dark:text-gray-300 leading-relaxed"></div>
+                <div id="modalLinks" class="mt-6 flex flex-wrap gap-4"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="imageModal" class="fixed inset-0 bg-black/80 z-50 hidden items-center justify-center p-4">
+        <button id="closeImageModal" class="absolute top-4 right-4 text-white hover:text-gray-300">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+        </button>
+        <img id="modalImage" src="" alt="Activity Photo" class="max-w-full max-h-[90vh] object-contain">
+    </div>
+    
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const translations = {
+        en: {
+            nav_about: "About Me",
+            nav_journey: "Career Journey",
+            nav_skills: "Skills",
+            nav_projects: "Projects",
+            nav_contact: "Contact",
+            nav_about_mobile: "About Me",
+            nav_journey_mobile: "Career Journey",
+            nav_skills_mobile: "Skills",
+            nav_projects_mobile: "Projects",
+            nav_contact_mobile: "Contact",
+            home_name: "Hyeonjun Na",
+            home_title: "Software Developer",
+            home_subtitle: "A developer passionate about defining problems and solving them with technology.<br>Turning ideas into reality with robust architecture and stable code.",
+            about_title: "About Me",
+            about_subtitle: "A Developer Who Solves Problems with Passion and Technology.",
+            about_greeting: "Hello, I'm Hyeonjun Na.",
+            about_p1: "I have a deep passion for the entire process of turning an idea into robust software. My strengths lie in logically analyzing complex requirements to design optimal architectures and implementing them with stable code.",
+            about_p2: "Through various individual and team projects, I have built a broad tech stack, including languages like C++, C#, C, and Python, and frameworks such as WinForms, Qt, and ASP.NET Core. My ability to quickly learn and apply new technologies and my collaborative skills in creating synergy through active communication are my greatest assets.",
+            about_p3: "I aim to grow beyond a developer who simply creates features into a 'Solution Architect' who considers the user experience and contributes to business growth. By deepening and broadening my technical expertise, I will become a developer who can provide reliable solutions to any problem.",
+            journey_title: "Career Journey",
+            journey_subtitle: "My Path from Finance to Software Development.",
+            journey1_title: "Career Break & Self-Improvement",
+            journey1_desc: "Intensively strengthened technical capabilities by completing advanced courses, including an 'AIoT Service Platform Developer Program' and a 'Big Data Specialist Level 1' certification course. Simultaneously, gained global market insights by traveling through Asia (South Korea, China, Thailand) and connecting with various startup personnel, enhancing both technical expertise and business acumen.",
+            journey2_title: "Finance Accountant",
+            journey2_desc: "At a global manufacturing company's finance and planning team, I handled accounting, auditing, and financial management using SAP and MS Office. This experience gave me a deep understanding of business processes and data-driven decision-making.",
+            journey3_title: "University of Wisconsin-Madison",
+            journey3_desc: "I earned a Bachelor's degree in Economics, developing analytical thinking and problem-solving skills that have become the logical foundation for my technical problem-solving.",
+            licenses_title: "Licenses & Certifications",
+            license1_issuer: "Issued by Google, Jul 2025",
+            license2_issuer: "Issued by University of Wisconsin-Madison, Dec 2020",
+	    license2_key: "211X-M6L0-HIA6",
+            license3_title: "Big Data Specialist Level 1",
+            license3_issuer: "License Issued Nov 2025",
+            show_credential: "Show credential",
+            additional_skills_title: "Languages & Additional Skills",
+            languages_title: "Languages",
+            lang_kr: "Native or bilingual proficiency",
+            lang_en: "Full professional proficiency",
+            lang_jp: "Limited working proficiency",
+            lang_etc: "Elementary proficiency",
+            business_acumen_title: "Finance & Business Acumen",
+            skill_fa: "Financial Accounting",
+            skill_fr: "Financial Reporting",
+            skill_fa2: "Fixed Assets",
+            skill_cf: "Cash Flow",
+            skill_dm: "Debt Management",
+            skill_im: "Inventory Management",
+            skill_om: "Operations Management",
+            skill_as: "Analytical Skills",
+            activities_title: "Activities & Photos",
+            activities_subtitle: "Moments from my journey and events.",
+            activity1_desc: "Description for the first event or activity.",
+            activity2_desc: "Showcasing a project at a tech fair.",
+            activity3_desc: "Team collaboration session during a hackathon.",
+            activity4_desc: "Networking event with industry professionals.",
+            activity5_desc: "Receiving a certificate for a completed course.",
+            activity6_desc: "Casual team discussion moment.",
+            tech_skills_title: "Technical Skills",
+            tech_skills_subtitle: "My Technical Expertise and Capabilities.",
+            skill_cat_lang: "Languages",
+            skill_cat_fw: "Frameworks & Libraries",
+            skill_cat_db: "Databases",
+            skill_cat_tools: "Tools & Etc.",
+            projects_title: "Projects",
+            projects_subtitle: "A Showcase of My Passion and Work.",
+            filter_all: "All",
+            contact_title: "Get in Touch",
+            contact_subtitle: "If you'd like to discuss my potential further, please don't hesitate to reach out.",
+            github_source: "View GitHub Source",
+            demo_video: "View Demo Video",
+            project_doc: "View Project Document",
+        },
+        ko: {
+            nav_about: "자기소개",
+            nav_journey: "성장 과정",
+            nav_skills: "보유 기술",
+            nav_projects: "프로젝트",
+            nav_contact: "연락처",
+            nav_about_mobile: "자기소개",
+            nav_journey_mobile: "성장 과정",
+            nav_skills_mobile: "보유 기술",
+            nav_projects_mobile: "프로젝트",
+            nav_contact_mobile: "연락처",
+            home_name: "나현준 (Hyeonjun Na)",
+            home_title: "Software Developer",
+            home_subtitle: "문제를 정의하고 기술로 해결하는 과정에 열정을 가진 개발자입니다.<br>견고한 아키텍처와 안정적인 코드로 아이디어를 현실로 만듭니다.",
+            about_title: "About Me",
+            about_subtitle: "열정과 기술로 문제를 해결하는 개발자",
+            about_greeting: "안녕하세요, 나현준입니다.",
+            about_p1: "저는 하나의 아이디어가 견고한 소프트웨어로 탄생하는 모든 과정에 깊은 열정을 가지고 있습니다. 복잡한 요구사항을 논리적으로 분석하여 최적의 아키텍처를 설계하고, 안정적인 코드로 구현해내는 것에 강점이 있습니다.",
+            about_p2: "다양한 개인 및 팀 프로젝트를 통해 C++, C#, C, Python 등 여러 언어와 WinForms, Qt, ASP.NET Core와 같은 프레임워크를 다루며 폭넓은 기술 스택을 쌓았습니다. 특히 **새로운 기술을 빠르게 학습하고 프로젝트에 적용하는 능력**과, 팀원들과의 **적극적인 소통을 통해 시너지를 만드는 협업 능력**은 저의 가장 큰 자산입니다.",
+            about_p3: "저는 단순히 기능을 만드는 개발자를 넘어, 사용자의 입장에서 더 나은 경험을 고민하고 비즈니스의 성장에 기여하는 **'솔루션 아키텍트(Solution Architect)'**로 성장하는 것을 목표로 하고 있습니다. 기술의 깊이를 더하고 넓이를 확장하며, 어떤 문제든 신뢰할 수 있는 해결책을 제시하는 개발자가 되겠습니다.",
+            journey_title: "Career Journey",
+            journey_subtitle: "재무에서 소프트웨어 개발까지, 저의 성장 과정입니다.",
+            journey1_title: "자기계발 및 커리어 전환",
+            journey1_desc: "'AIOT 인공지능 기반 서비스 플랫폼 개발자 과정'과 '빅데이터 전문가 1급' 과정을 이수하며 최신 기술 스택을 심도 있게 학습했습니다. 이 기간 동안 아시아(한국, 중국, 태국)를 여행하며 다양한 스타트업 관계자들과 교류하고 글로벌 시장 트렌드에 대한 인사이트를 얻으며 기술 역량과 비즈니스 감각을 동시에 강화했습니다.",
+            journey2_title: "재무 회계 담당자",
+            journey2_desc: "글로벌 제조 기업의 재무기획팀에서 SAP 및 MS Office를 활용하여 회계, 감사, 재무 관리 업무를 담당했습니다. 이를 통해 비즈니스 프로세스와 데이터 기반 의사결정에 대한 깊은 이해를 갖추게 되었습니다.",
+            journey3_title: "위스콘신 대학교 매디슨 캠퍼스",
+            journey3_desc: "경제학 학사 학위를 취득하며 분석적 사고와 문제 해결 능력을 길렀습니다. 이는 기술적 문제 해결의 논리적 기반이 되었습니다.",
+            licenses_title: "자격증 및 인증",
+            license1_issuer: "발급기관: Google, 2025년 7월",
+            license2_issuer: "발급기관: University of Wisconsin-Madison, 2020년 12월",
+            license3_title: "빅데이터전문가 1급",
+            license3_issuer: "자격증 취득 (2025년 11월)",
+            show_credential: "자격증 보기",
+            additional_skills_title: "언어 및 기타 역량",
+            languages_title: "구사 언어",
+            lang_kr: "원어민 또는 이중 언어 구사",
+            lang_en: "완전한 업무상 의사소통 가능",
+            lang_jp: "제한된 업무상 의사소통 가능",
+            lang_etc: "초급",
+            business_acumen_title: "재무 및 비즈니스 역량",
+            skill_fa: "재무 회계",
+            skill_fr: "재무보고",
+            skill_fa2: "고정자산",
+            skill_cf: "현금흐름",
+            skill_dm: "채무관리",
+            skill_im: "재고관리",
+            skill_om: "운영관리",
+            skill_as: "분석능력",
+            activities_title: "활동 및 사진",
+            activities_subtitle: "저의 여정과 이벤트 속 순간들입니다.",
+            activity1_desc: "첫 번째 이벤트 또는 활동에 대한 설명입니다.",
+            activity2_desc: "기술 박람회에서 프로젝트를 시연하는 모습입니다.",
+            activity3_desc: "해커톤 중 팀원들과 협업하는 모습입니다.",
+            activity4_desc: "업계 전문가들과의 네트워킹 이벤트입니다.",
+            activity5_desc: "과정 수료 후 수료증을 받는 모습입니다.",
+            activity6_desc: "팀원들과 편안하게 토론하는 모습입니다.",
+            tech_skills_title: "보유 기술",
+            tech_skills_subtitle: "저의 기술 전문성과 역량입니다.",
+            skill_cat_lang: "프로그래밍 언어",
+            skill_cat_fw: "프레임워크 & 라이브러리",
+            skill_cat_db: "데이터베이스",
+            skill_cat_tools: "개발 도구 및 기타",
+            projects_title: "프로젝트",
+            projects_subtitle: "저의 열정과 결과물을 소개합니다.",
+            filter_all: "전체",
+            contact_title: "연락처",
+            contact_subtitle: "저의 가능성에 대해 더 이야기하고 싶으시다면, 언제든지 연락주세요.",
+            github_source: "GitHub 원본 소스 보기",
+            demo_video: "데모 영상 보기",
+            project_doc: "완료 보고서 보기",
+        }
+    };
+    
+    const projectData = [
+        {
+            id: 1,
+            title: { ko: "C# WinForms Snake (온라인/싱글 멀티플레이)", en: "C# WinForms Snake (Online/Single Multiplayer)" },
+            category: "csharp",
+            image: "https://placehold.co/600x400/0D9488/FFFFFF?text=Snake+Game",
+            shortDesc: {
+                ko: "ASP.NET Core와 SignalR을 활용한 실시간 온라인 멀티플레이 스네이크 게임.",
+                en: "Real-time online multiplayer Snake game built with ASP.NET Core and SignalR."
+            },
+            duration: "2025/10/13 ~ 2025/10/19 (1주)",
+            tags: ["C#", ".NET", "WinForms", "ASP.NET Core", "SignalR", "SQLite"],
+            links: [
+                { nameKey: "demo_video", url: "https://youtu.be/GgMJsWo5Ou0" },
+                { nameKey: "github_source", url: "https://github.com/vivleon/AI-7/tree/LMS7-23_28%EC%A3%BC%EC%B0%A8%5D-1013-C%23-%EC%9C%88%ED%8F%BC-%EA%B8%B0%EB%B0%98-%EC%98%A8%EB%9D%BC%EC%9D%B8-%EB%A9%80%ED%8B%B0-%EA%B2%8C%EC%9E%84-%EC%99%84%EB%A3%8C%EB%B3%B4%EA%B3%A0%EC%84%9C%2C-_C%23-%EC%9C%88%ED%8F%BC-%EC%8A%A4%EB%84%A4%EC%9D%B4%ED%81%AC" },
+                { nameKey: "project_doc", url: "https://drive.google.com/file/d/1ISXpP6Hem-CFMQ9bde9h4q36Y36tCsxP/view?usp=sharing" }
+            ],
+            content: {
+                ko: `
+                    <h4 class="font-semibold text-lg mb-2">주요 도메인</h4>
+                    <p>계정(Account/Player), 매치(방/게임), 상점·인벤토리(코스메틱/테마), 가챠·제작(샤드), 채팅(로비/방/귓속말)</p>
+                    <h4 class="font-semibold text-lg mb-2 mt-4">주요 기능</h4>
+                    <ul class="list-disc list-inside mb-4 space-y-1">
+                        <li><b>계정 시스템:</b> 사용자 계정 관리, 레벨/경험치/재화 및 꾸미기 아이템 관리</li>
+                        <li><b>실시간 매치 시스템:</b> SignalR 기반 온라인 멀티플레이, 로컬 플레이 지원</li>
+                        <li><b>경제 시스템:</b> 상점, 인벤토리, 가챠 및 제작 시스템 구현</li>
+                        <li><b>채팅 시스템:</b> 로비, 방, 귓속말 기능</li>
+                        <li><b>데이터 영속성:</b> SQLite와 Entity Framework Core를 이용한 데이터 관리</li>
+                    </ul>
+                    <h4 class="font-semibold text-lg mb-2 mt-4">기술적 도전 및 해결 과정</h4>
+                    <p>1주일 안에 계정, 상점, 채팅 등 복합적인 '에코시스템'을 갖춘 온라인 게임을 완성하는 것이 가장 큰 도전이었습니다. 특히 SignalR을 이용해 여러 클라이언트의 게임 상태를 실시간으로 동기화하는 부분이 핵심이었습니다. 서버에서 게임의 핵심 상태를 중앙 관리하고, 클라이언트에는 최소한의 정보만 주기적으로 전송하여 렌더링하도록 아키텍처를 설계하여 네트워크 지연 문제를 해결했습니다. 이 프로젝트를 통해 Full-Stack 개발의 전체 사이클을 경험하며 시스템 설계 역량을 크게 향상시킬 수 있었습니다.</p>
+                `,
+                en: `
+                    <h4 class="font-semibold text-lg mb-2">Key Domains</h4>
+                    <p>Accounts/Players, Matches (Rooms/Games), Shop/Inventory (Cosmetics/Themes), Gacha/Crafting (Shards), Chat (Lobby/Rooms/Whispers)</p>
+                    <h4 class="font-semibold text-lg mb-2 mt-4">Key Features</h4>
+                    <ul class="list-disc list-inside mb-4 space-y-1">
+                        <li><b>Account System:</b> User account management, levels/XP/currency, and cosmetic item management.</li>
+                        <li><b>Real-time Match System:</b> SignalR-based online multiplayer, local play support.</li>
+                        <li><b>Economy System:</b> Implemented shop, inventory, gacha, and crafting systems.</li>
+                        <li><b>Chat System:</b> Lobby, room, and whisper functionalities.</li>
+                        <li><b>Data Persistence:</b> Data management using SQLite and Entity Framework Core.</li>
+                    </ul>
+                    <h4 class="font-semibold text-lg mb-2 mt-4">Technical Challenges & Solutions</h4>
+                    <p>Completing an online game with a complex 'ecosystem' including accounts, shops, and chat within a week was the biggest challenge. Synchronizing game states of multiple clients in real-time using SignalR was a key aspect. We designed the architecture to centrally manage core game states on the server and send minimal information to clients for rendering, thereby addressing network latency issues. This project allowed me to experience the full development cycle of a full-stack application, significantly enhancing my system design capabilities.</p>
+                `
+            }
+        },
+        {
+            id: 2,
+            title: { ko: "HomeCare+ (스마트홈 시스템)", en: "HomeCare+ (Smart Home System)" },
+            category: "cpp",
+            image: "https://placehold.co/600x400/0D9488/FFFFFF?text=HomeCare%2B",
+            shortDesc: {
+                ko: "Qt와 아두이노를 연동한 IoT 기반 스마트홈 모니터링 대시보드.",
+                en: "IoT-based smart home monitoring dashboard integrated with Qt and Arduino."
+            },
+            duration: "2025/08/26 ~ 2025/09/16 (3주)",
+            tags: ["C++", "Qt", "MySQL", "Arduino", "IoT"],
+            links: [
+                { nameKey: "github_source", url: "https://github.com/vivleon/AI-7/tree/LMS7-16_26%EC%A3%BC%EC%B0%A8%5D-0826-%EC%A0%9C60%ED%9A%8C-%EC%A0%84%EA%B5%AD%EA%B8%B0%EB%8A%A5%EA%B2%BD%EA%B8%B0%EB%8C%80%ED%9A%8C%5D-%EC%A0%84%EC%8B%9C-%EC%9E%91%ED%92%88-%EC%A0%9C%EC%9E%91-%ED%94%84%EB%A1%9C%EC%A0%9D%ED%8A%B8%2C-HomeCare%2B" },
+                { nameKey: "project_doc", url: "https://drive.google.com/file/d/1vqPvfqg6xmP22h2Gk6gpF6KaRwR5H7xw/view?usp=sharing" }
+            ],
+            content: {
+                ko: `
+                    <h4 class="font-semibold text-lg mb-2">개발 목적</h4>
+                    <p>현대 사회의 1인 가구 증가와 고령화에 따른 주거 환경의 스마트화 필요성에 대응하여, IoT 기술을 활용한 통합 스마트홈 시스템 개발</p>
+                    <h4 class="font-semibold text-lg mb-2 mt-4">주요 기능</h4>
+                    <ul class="list-disc list-inside mb-4 space-y-1">
+                        <li><b>스마트홈 대시보드:</b> Qt 기반의 직관적인 UI/UX 구현</li>
+                        <li><b>실시간 센서 모니터링:</b> 온도/습도, 화재/가스, 식물 습도, 반려동물 상태 등 실시간 데이터 시각화</li>
+                        <li><b>하드웨어 제어:</b> 아두이노 센서 연동 및 창문 등 디바이스 제어</li>
+                        <li><b>시계 및 날짜 표시, 페이지 네비게이션</b> (Safety/Certified/Search 이동)</li>
+                    </ul>
+                    <h4 class="font-semibold text-lg mb-2 mt-4">협업 능력 및 성장 포인트</h4>
+                    <p>이 프로젝트는 불명확한 기획에서 시작하여 팀원들과 함께 구체화해나가는 과정 자체가 가장 큰 경험이었습니다. 저는 어떤 데이터가 들어올지 모르는 상황에 대비해 유연한 데이터베이스 스키마를 설계하고, 개발 과정에서 계속해서 테이블을 추가하고 쿼리를 수정하며 시행착오를 겪었습니다. 하드웨어 측면에서는 센서마다 다른 아두이노 코드를 맞춤형으로 작성해야 했습니다. 또한, 팀원 간의 소통을 적극적으로 주도하여 기술적 문제를 함께 해결하며 프로젝트의 완성도를 높였습니다. 이 경험을 통해 불확실한 상황에 대처하는 유연성, 팀 시너지를 이끌어내는 커뮤니케이션 능력, 그리고 IoT 시스템 설계 역량이 크게 성장했습니다.</p>
+                `,
+                en: `
+                    <h4 class="font-semibold text-lg mb-2">Development Purpose</h4>
+                    <p>To develop an integrated smart home system utilizing IoT technology, responding to the increasing number of single-person households and the aging population in modern society, and the resulting need for smart residential environments.</p>
+                    <h4 class="font-semibold text-lg mb-2 mt-4">Key Features</h4>
+                    <ul class="list-disc list-inside mb-4 space-y-1">
+                        <li><b>Smart Home Dashboard:</b> Intuitive UI/UX implementation based on Qt.</li>
+                        <li><b>Real-time Sensor Monitoring:</b> Visualization of real-time data for temperature/humidity, fire/gas, plant humidity, and pet status.</li>
+                        <li><b>Hardware Control:</b> Integration with Arduino sensors and control of devices like windows.</li>
+                        <li><b>Clock & Date Display, Page Navigation</b> (to Safety/Certified/Search sections).</li>
+                    </ul>
+                    <h4 class="font-semibold text-lg mb-2 mt-4">Collaboration & Growth Points</h4>
+                    <p>This project began with an unclear plan, and the process of defining it with my team was a major learning experience. I designed a flexible database schema to anticipate unknown data inputs, continuously adding tables and modifying queries during development. On the hardware side, I had to customize Arduino code for each sensor. I also actively facilitated communication among team members to collaboratively solve technical issues, enhancing the project's completeness. Through this experience, I greatly improved my flexibility in handling uncertain situations, communication skills for fostering team synergy, and overall IoT system design capabilities.</p>
+                `
+            }
+        },
+        {
+            id: 3,
+            title: { ko: "VigilEdge (외곽 보안/환경 모니터링 시스템)", en: "VigilEdge (Perimeter Security/Environmental Monitoring System)" },
+            category: "cpp",
+            image: "https://placehold.co/600x400/0D9488/FFFFFF?text=VigilEdge",
+            shortDesc: {
+                ko: "QML과 TCP 통신을 활용한 실시간 외곽 보안 모니터링 플랫폼.",
+                en: "Real-time perimeter security monitoring platform using QML and TCP communication."
+            },
+            duration: "2025/08/13 ~ 2025/08/20 (1주)",
+            tags: ["C++", "Qt", "QML", "MySQL", "TCP/IP"],
+            links: [
+                { nameKey: "demo_video", url: "https://youtu.be/kf35SRhFuKc" },
+                { nameKey: "github_source", url: "https://github.com/vivleon/AI-7/tree/LMS7-14_28%EC%A3%BC%EC%B0%A8%5D-0812-Qt-%EA%B0%9C%EC%9D%B8-%ED%94%84%EB%A1%9C%EC%A0%9D%ED%8A%B8%2C-_VigilEdge" },
+                { nameKey: "project_doc", url: "https://drive.google.com/file/d/1du8uHPkcwqHNBjg0ONLgVPNqfYl8Onxc/view?usp=sharing" }
+            ],
+            content: {
+                ko: `
+                    <h4 class="font-semibold text-lg mb-2">개발 목적</h4>
+                    <p>C기반 이상탐지, Edge AI 처리, 영상 및 다양한 환경 센서와 연동 가능한 범용 보안/환경 통합 모니터링 플랫폼 구축</p>
+                    <h4 class="font-semibold text-lg mb-2 mt-4">주요 기능</h4>
+                    <ul class="list-disc list-inside mb-4 space-y-1">
+                        <li><b>통합 대시보드:</b> 센서 상태, 경보, 지도, 차트, 로그 통합 뷰 제공</li>
+                        <li><b>QML 지도 뷰:</b> 지도 위 센서 위치 및 실시간 상태 시각화 (확대/축소/리셋 포함)</li>
+                        <li><b>실시간 데이터 처리:</b> TCP 기반 센서 데이터 수집, 패킷 파싱, 예외 처리</li>
+                        <li><b>이상 패턴 분석:</b> 기본 규칙 기반 경보 발생 (PatternAnalyzer)</li>
+                        <li><b>안정적인 DB 관리:</b> MySQL 연동 (DB 브리지), 커넥션 풀, SSL 기반 연결, 마이그레이션 가드 (테이블 존재 여부 확인 및 자동 생성)</li>
+                        <li><b>시드 데이터 초기화:</b> 관리자 계정, 센서 샘플 데이터 자동 삽입</li>
+                        <li><b>사용자 계정 관리:</b> 로그인, 권한(ADMIN/OP) 관리</li>
+                    </ul>
+                    <h4 class="font-semibold text-lg mb-2 mt-4">어려웠던 점과 습득한 역량</h4>
+                    <p>C++ 백엔드 로직과 QML 프론트엔드를 유기적으로 연동하는 부분이 가장 어려웠습니다. 특히 TCP 통신으로 수신되는 센서 데이터를 실시간으로 파싱하고, 그 결과를 QML 지도 위에 지연 없이 시각화하는 것이 핵심 과제였습니다. Qt의 시그널-슬롯 메커니즘을 적극적으로 활용하여 데이터 처리부와 UI 렌더링부를 분리하고 비동기 처리하여 문제를 해결했습니다. 이 프로젝트를 통해 시스템 아키텍처 설계부터 저수준 네트워크 프로그래밍, 데이터베이스 관리, GUI 개발까지 아우르는 종합적인 역량을 기를 수 있었습니다.</p>
+                `,
+                en: `
+                    <h4 class="font-semibold text-lg mb-2">Development Purpose</h4>
+                    <p>To establish a general-purpose security/environmental integrated monitoring platform capable of C-based anomaly detection, Edge AI processing, and integration with video and various environmental sensors.</p>
+                    <h4 class="font-semibold text-lg mb-2 mt-4">Key Features</h4>
+                    <ul class="list-disc list-inside mb-4 space-y-1">
+                        <li><b>Integrated Dashboard:</b> Provides a unified view of sensor status, alarms, maps, charts, and logs.</li>
+                        <li><b>QML Map View:</b> Visualizes sensor locations and real-time status on a map (including zoom/pan/reset).</li>
+                        <li><b>Real-time Data Processing:</b> TCP-based real-time sensor data collection, packet parsing, and exception handling.</li>
+                        <li><b>Anomaly Pattern Analysis:</b> Rule-based alarm generation (PatternAnalyzer).</li>
+                        <li><b>Stable DB Management:</b> MySQL integration (DB Bridge), connection pooling, SSL-based connection, migration guard (table existence check and auto-creation).</li>
+                        <li><b>Seed Data Initialization:</b> Automatic insertion of administrator accounts and sensor sample data.</li>
+                        <li><b>User Account Management:</b> Login and permission (ADMIN/OP) management.</li>
+                    </ul>
+                    <h4 class="font-semibold text-lg mb-2 mt-4">Challenges & Acquired Competencies</h4>
+                    <p>The most challenging aspect was organically linking the C++ backend logic with the QML frontend. A core task was parsing real-time sensor data received via TCP communication and visualizing it on the QML map without delay. I resolved this by actively utilizing Qt's signal-slot mechanism to separate data processing from UI rendering and implementing asynchronous processing. Through this project, I gained comprehensive competencies ranging from system architecture design to low-level network programming, database management, and GUI development.</p>
+                `
+            }
+        },
+        {
+            id: 4,
+            title: { ko: "C언어와 MySQL을 활용한 채팅 구현", en: "C Language & MySQL Chat Implementation" },
+            category: "c",
+            image: "https://placehold.co/600x400/0D9488/FFFFFF?text=C+Chat",
+            shortDesc: {
+                ko: "C언어와 소켓 프로그래밍을 이용한 멀티유저 채팅 프로그램.",
+                en: "Multi-user chat program using C language and socket programming with MySQL."
+            },
+            duration: "2025/07/14 ~ 2025/07/21 (1주)",
+            tags: ["C", "MySQL", "Networking"],
+            links: [
+                { nameKey: "demo_video", url: "https://youtu.be/aQNynpX1U0I" },
+                { nameKey: "github_source", url: "https://github.com/vivleon/AI-7/tree/LMS7-10_28%EC%A3%BC%EC%B0%A8%5D-0714-C%EC%96%B8%EC%96%B4%EC%99%80-MySQL%EC%9D%84-%ED%99%9C%EC%9A%A9%ED%95%9C%2C-%EC%B1%84%ED%8C%85-%EA%B5%AC%ED%98%84-%ED%94%84%EB%A1%9C%EC%A0%9D%ED%8A%B8%2C-3%ED%8C%80" },
+                { nameKey: "project_doc", url: "https://drive.google.com/file/d/11l2pkHfcuolL7X3jWGdqJfkQ4i_MQlxr/view?usp=sharing" }
+            ],
+            content: {
+                ko: `
+                    <h4 class="font-semibold text-lg mb-2">개발 목적</h4>
+                    <p>채팅 프로그램 개발을 통한 C 네트워크와 데이터베이스 이해도 상승</p>
+                    <h4 class="font-semibold text-lg mb-2 mt-4">주요 기능</h4>
+                    <ul class="list-disc list-inside mb-4 space-y-1">
+                        <li><b>회원 관리:</b> 회원가입, 로그인, 비밀번호 변경, 회원 탈퇴 기능 (ID 중복 체크 포함)</li>
+                        <li><b>공개 채팅방:</b> 접속한 모든 사용자에게 메시지 전송, 아이디 및 채팅 입력 시간 출력, 현재 접속자 확인, 로그아웃 시 로그인 화면 이동</li>
+                        <li><b>그룹 채팅방:</b> 채팅방 생성, 채팅방 리스트 검색, 채팅방 입장, 그룹 채팅, 현재 참여자 확인, 채팅방 나가기</li>
+                        <li><b>귓속말:</b> 특정 클라이언트에게만 메시지 전송 (오프라인 시 오류 메시지 출력)</li>
+                        <li><b>데이터 저장:</b> MySQL을 이용한 회원 정보 (ID, PW, 탈퇴 여부) 및 채팅 로그 (채팅방 이름, 발신자 ID, 채팅 내용, 발송 시간) 영구 저장</li>
+                    </ul>
+                    <h4 class="font-semibold text-lg mb-2 mt-4">담당 역할 및 기술적 성장</h4>
+                    <p>팀 프로젝트에서 저는 테이블 명세서/ERD 작성, 회원정보 및 채팅로그 DB 저장 기능 구현, 그리고 공개 채팅방/그룹 채팅방 생성 기능 구현을 담당했습니다. C언어 환경에서 MySQL C API를 직접 사용하여 데이터베이스와 통신하고, 멀티 클라이언트 접속을 처리하는 소켓 프로그래밍은 포인터와 메모리 관리에 세심한 주의가 필요한 어려운 작업이었습니다. 팀원들이 구현하는 기능들이 안정적으로 동작할 수 있도록 견고한 DB 연동 모듈을 제공하는 것을 목표로 했습니다. 이 과정에서 저수준 언어에서의 메모리 관리와 시스템 프로그래밍에 대한 깊이 있는 이해를 얻을 수 있었고, 안정성과 확장성을 고려한 모듈 설계 경험을 쌓았습니다.</p>
+                `,
+                en: `
+                    <h4 class="font-semibold text-lg mb-2">Development Purpose</h4>
+                    <p>To enhance understanding of C network programming and databases through chat program development.</p>
+                    <h4 class="font-semibold text-lg mb-2 mt-4">Key Features</h4>
+                    <ul class="list-disc list-inside mb-4 space-y-1">
+                        <li><b>User Management:</b> Registration, login, password change, and account deletion (including ID duplication check).</li>
+                        <li><b>Public Chat Room:</b> Message transmission to all connected users, display of user ID and timestamp, current user check, redirection to login screen on logout.</li>
+                        <li><b>Group Chat Room:</b> Creation of chat rooms, search for chat room list, joining chat rooms, group chat, participant check, leaving chat rooms.</li>
+                        <li><b>Whisper Function:</b> Message transmission to specific clients only (error message if recipient is offline).</li>
+                        <li><b>Data Storage:</b> Permanent storage of user information (ID, password, withdrawal status) and chat logs (room name, sender ID, chat content, timestamp) using MySQL.</li>
+                    </ul>
+                    <h4 class="font-semibold text-lg mb-2 mt-4">My Role & Technical Growth</h4>
+                    <p>In this team project, I was responsible for writing the table specifications/ERD, implementing DB saving functions for user information and chat logs, and implementing public/group chat room creation functions. Directly communicating with the database using the MySQL C API in a C environment and handling multi-client socket programming was challenging, requiring meticulous attention to pointers and memory management. My goal was to provide a robust DB integration module to ensure stable operation for features implemented by my team members. This process deepened my understanding of memory management and system programming in low-level languages, and I gained experience in designing modules with stability and scalability in mind.</p>
+                `
+            }
+        },
+        {
+            id: 5,
+            title: { ko: "C언어 콘솔 게임 (펫 어드벤처: 대혼란 탐험기)", en: "C Language Console Game (Pet Adventure: Chaotic Expedition)" },
+            category: "c",
+            image: "https://placehold.co/600x400/0D9488/FFFFFF?text=Pet+Adventure",
+            shortDesc: {
+                ko: "C언어로 구현한 턴제 방식의 텍스트 기반 어드벤처 RPG.",
+                en: "Turn-based text-based adventure RPG implemented in C language."
+            },
+            duration: "2025/06/23 ~ 2025/06/28 (1주)",
+            tags: ["C", "GameDev"],
+            links: [
+                { nameKey: "demo_video", url: "https://youtu.be/aXG4CIEmIGs" },
+                { nameKey: "github_source", url: "https://github.com/vivleon/AI-7/tree/LMS7-07_28%EC%A3%BC%EC%B0%A8%5D-0623-%EC%BD%98%EC%86%94%EA%B2%8C%EC%9E%84%EB%A7%8C%EB%93%A4%EA%B8%B0-%ED%94%84%EB%A1%9C%EC%A0%9D%ED%8A%B8%2C-1%ED%8C%80" },
+                { nameKey: "project_doc", url: "https://drive.google.com/file/d/1xCwH573Hs5_BX-yl6XIuaVBPRJMX91Fx/view?usp=sharing" }
+            ],
+            content: {
+                ko: `
+                    <h4 class="font-semibold text-lg mb-2">개발 목적</h4>
+                    <p>C언어를 활용하여 사용자가 즐길 수 있는 턴제형 어드벤처 게임을 만들어 유포</p>
+                    <h4 class="font-semibold text-lg mb-2 mt-4">주요 기능</h4>
+                    <ul class="list-disc list-inside mb-4 space-y-1">
+                        <li><b>게임 시스템:</b> 맵 & 몬스터, 턴제 전투, 펫 성장, 퀘스트, 상점 시스템</li>
+                        <li><b>엔딩 분기:</b> 플레이어의 선택과 행동에 따라 달라지는 멀티 엔딩 구현</li>
+                    </ul>
+                    <h4 class="font-semibold text-lg mb-2 mt-4">기술적 도전 및 기여</h4>
+                    <p>콘솔이라는 제한된 환경에서 게임의 핵심 재미를 책임지는 맵 & 몬스터 시스템과 엔딩 분기를 구현한 것이 가장 기억에 남습니다. 저는 맵 & 몬스터 시스템 (보물상자 스폰, 준보스)과 최종 보스 및 엔딩 분기 처리를 담당했습니다. 특히 플레이어의 행동에 따라 각기 다른 엔딩이 출력되도록 상태를 관리하고 분기를 처리하는 로직을 설계하는 과정이 흥미로웠습니다. 게임의 주요 상태를 구조체와 플래그로 관리하고, 이벤트 발생 시 조건에 따라 상태를 변경하는 상태 머신(State Machine) 패턴을 적용했습니다. 저의 기여를 통해 게임은 단순한 반복 플레이를 넘어, 다양한 스토리를 경험할 수 있는 깊이와 리플레이 가치를 갖게 되었습니다.</p>
+                `,
+                en: `
+                    <h4 class="font-semibold text-lg mb-2">Development Purpose</h4>
+                    <p>To create and distribute a turn-based adventure game using C language that users can enjoy.</p>
+                    <h4 class="font-semibold text-lg mb-2 mt-4">Key Features</h4>
+                    <ul class="list-disc list-inside mb-4 space-y-1">
+                        <li><b>Game System:</b> Map & monster generation, turn-based combat, pet growth, quests, and shop system.</li>
+                        <li><b>Branching Endings:</b> Implemented multiple endings that vary based on player choices and actions.</li>
+                    </ul>
+                    <h4 class="font-semibold text-lg mb-2 mt-4">Technical Challenges & Contributions</h4>
+                    <p>Implementing the map & monster system and branching endings, which were crucial for the game's core appeal in a limited console environment, is what I remember most. I was responsible for the map & monster system (treasure chest spawns, sub-bosses) and handling the final boss and branching endings. Designing the logic to manage states and handle branches for different endings based on player actions was particularly engaging. I applied a State Machine pattern, managing core game states with structs and flags, and changing states based on event conditions. My contributions ensured the game offered more than repetitive play, providing depth and replay value through diverse storylines.</p>
+                `
+            }
+        },
+        {
+            id: 6,
+            title: { ko: "Python 키오스크 프로젝트 (베스킨라빈스 키오스크)", en: "Python Kiosk Project (Baskin Robbins Kiosk)" },
+            category: "python",
+            image: "https://placehold.co/600x400/0D9488/FFFFFF?text=Kiosk",
+            shortDesc: {
+                ko: "베스킨라빈스 매장 키오스크의 주문/결제 프로세스를 구현한 콘솔 애플리케이션.",
+                en: "Console application implementing the order/payment process of a Baskin Robbins store kiosk."
+            },
+            duration: "2025/06/02 ~ 2025/06/06 (5일)",
+            tags: ["Python"],
+            links: [
+                { nameKey: "demo_video", url: "https://youtu.be/7YqeUmJvloA" },
+                { nameKey: "github_source", url: "https://github.com/vivleon/AI-7/tree/LMS7-03_28%EC%A3%BC%EC%B0%A8%5D-0529-Python-%ED%82%A4%EC%98%A4%EC%8A%A4%ED%81%AC-%ED%94%84%EB%A1%9C%EC%A0%9D%ED%8A%B8%2C-2%ED%8C%80" },
+                { nameKey: "project_doc", url: "https://drive.google.com/file/d/1i9JC4NKymlOUBJ4atlDDun2Pc0jsDw1-/view?usp=sharing" }
+            ],
+            content: {
+                ko: `
+                    <h4 class="font-semibold text-lg mb-2">개발 목적</h4>
+                    <p>오프라인 매장에서 고객이 직접 주문을 진행할 수 있는 셀프 키오스크 시스템 구축</p>
+                    <h4 class="font-semibold text-lg mb-2 mt-4">주요 기능</h4>
+                    <ul class="list-disc list-inside mb-4 space-y-1">
+                        <li><b>주문/결제 시스템:</b> 메뉴 선택, 옵션 조절, 다양한 결제 방법 지원</li>
+                        <li><b>할인/적립 시스템:</b> 멤버십 포인트 적용 및 할인 기능</li>
+                        <li><b>영수증 출력:</b> 주문 완료 후 영수증 출력</li>
+                    </ul>
+                    <h4 class="font-semibold text-lg mb-2 mt-4">리더십과 프로젝트에 미친 영향</h4>
+                    <p>5일이라는 매우 짧은 기간 안에 프로젝트를 완수해야 했기 때문에, 명확한 개발 계획과 시스템 구조 설계가 무엇보다 중요했습니다. 저는 프로젝트의 전체적인 개발 계획을 수립하고, 메인 화면과 메뉴 구성 등 시스템의 뼈대가 되는 구조 설계를 담당했습니다. 제가 설계한 기본 구조 위에서 팀원들이 각자의 모듈을 독립적으로 개발할 수 있었고, 이는 단기간 내에 완성도 높은 결과물을 만들어내는 결정적인 요인이 되었습니다. 이 경험을 통해 프로젝트의 초기 설계가 전체 개발 효율성에 미치는 영향을 깨닫고, 기술적 방향을 제시하는 리더십 역량을 기를 수 있었습니다.</p>
+                `,
+                en: `
+                    <h4 class="font-semibold text-lg mb-2">Development Purpose</h4>
+                    <p>To build a self-service kiosk system enabling customers to directly place orders in offline stores.</p>
+                    <h4 class="font-semibold text-lg mb-2 mt-4">Key Features</h4>
+                    <ul class="list-disc list-inside mb-4 space-y-1">
+                        <li><b>Order/Payment System:</b> Menu selection, option adjustment, and support for various payment methods.</li>
+                        <li><b>Discount/Loyalty System:</b> Membership points application and discount features.</li>
+                        <li><b>Receipt Printing:</b> Printing of receipts after order completion.</li>
+                    </ul>
+                    <h4 class="font-semibold text-lg mb-2 mt-4">Leadership & Project Impact</h4>
+                    <p>Completing the project within a very short period of 5 days emphasized the critical importance of clear development planning and system architecture design. I was responsible for establishing the overall development plan and designing the structural backbone of the system, including the main screen and menu navigation. This foundational structure allowed team members to independently develop their respective modules, which was a decisive factor in delivering a high-quality outcome within a tight timeframe. Through this experience, I realized the significant impact of initial project design on overall development efficiency and cultivated leadership skills in setting technical direction.</p>
+                `
+            }
+        },
+    ];
+
+    let currentLang = localStorage.getItem('language') || 'ko';
+    let currentTheme = localStorage.getItem('theme') || 'light';
+    let skillsChart;
+
+    function setLanguage(lang) {
+        currentLang = lang;
+        localStorage.setItem('language', lang);
+        document.documentElement.lang = lang;
+        document.querySelectorAll('[data-lang-key]').forEach(el => {
+            const key = el.getAttribute('data-lang-key');
+            if (translations[lang][key]) {
+                el.innerHTML = translations[lang][key];
+            }
+        });
+        document.body.classList.toggle('en-font', lang === 'en');
+        renderProjects(document.querySelector('#project-filters .active').dataset.filter);
+        updateChartTheme();
+    }
+
+    function setTheme(theme) {
+        currentTheme = theme;
+        localStorage.setItem('theme', theme);
+        if (theme === 'dark') {
+            document.documentElement.classList.add('dark');
+            document.getElementById('theme-icon-light').classList.add('hidden');
+            document.getElementById('theme-icon-dark').classList.remove('hidden');
+            document.getElementById('theme-icon-light-mobile').classList.add('hidden');
+            document.getElementById('theme-icon-dark-mobile').classList.remove('hidden');
+        } else {
+            document.documentElement.classList.remove('dark');
+            document.getElementById('theme-icon-light').classList.remove('hidden');
+            document.getElementById('theme-icon-dark').classList.add('hidden');
+            document.getElementById('theme-icon-light-mobile').classList.remove('hidden');
+            document.getElementById('theme-icon-dark-mobile').classList.add('hidden');
+        }
+        updateChartTheme();
+    }
+    
+    document.getElementById('lang-toggle').addEventListener('click', () => setLanguage(currentLang === 'ko' ? 'en' : 'ko'));
+    document.getElementById('lang-toggle-mobile').addEventListener('click', () => setLanguage(currentLang === 'ko' ? 'en' : 'ko'));
+    document.getElementById('theme-toggle').addEventListener('click', () => setTheme(currentTheme === 'light' ? 'dark' : 'light'));
+    document.getElementById('theme-toggle-mobile').addEventListener('click', () => setTheme(currentTheme === 'light' ? 'dark' : 'light'));
+    
+    const projectGrid = document.getElementById('project-grid');
+    const filters = document.querySelectorAll('#project-filters .filter-btn');
+    
+    function renderProjects(filter = 'all') {
+        projectGrid.innerHTML = '';
+        const filteredProjects = filter === 'all' ? projectData : projectData.filter(p => p.category === filter);
+
+        filteredProjects.forEach(project => {
+            const card = document.createElement('div');
+            card.className = 'project-card cursor-pointer bg-white dark:bg-gray-800';
+            card.dataset.id = project.id;
+            card.dataset.category = project.category;
+            card.innerHTML = `
+                <img src="${project.image}" alt="${project.title[currentLang]}" class="w-full h-48 object-cover">
+                <div class="p-6">
+                    <h3 class="text-xl font-bold mb-2 text-gray-900 dark:text-white">${project.title[currentLang]}</h3>
+                    <p class="text-gray-600 dark:text-gray-300 text-sm mb-4">${project.shortDesc[currentLang]}</p>
+                    <div class="flex flex-wrap">
+                        ${project.tags.map(tag => `<span class="project-tag bg-teal-100 text-teal-800 dark:bg-teal-900 dark:text-teal-200">${tag}</span>`).join('')}
+                    </div>
+                </div>`;
+            projectGrid.appendChild(card);
+            card.addEventListener('click', () => openModal(project.id));
+        });
+    }
+
+    filters.forEach(button => {
+        button.addEventListener('click', () => {
+            filters.forEach(btn => {
+                btn.classList.remove('active', 'bg-teal-600', 'text-white');
+                btn.classList.add('bg-white', 'text-gray-700', 'dark:bg-gray-700', 'dark:text-gray-200', 'hover:bg-gray-100', 'dark:hover:bg-gray-600');
+            });
+            button.classList.add('active', 'bg-teal-600', 'text-white');
+            button.classList.remove('bg-white', 'text-gray-700', 'dark:bg-gray-700', 'dark:text-gray-200');
+            renderProjects(button.dataset.filter);
+        });
+    });
+
+    const modal = document.getElementById('projectModal');
+    const closeModalBtn = document.getElementById('closeModal');
+    
+    function openModal(id) {
+        const project = projectData.find(p => p.id === id);
+        if (project) {
+            document.getElementById('modalTitle').textContent = project.title[currentLang];
+            document.getElementById('modalDuration').textContent = project.duration; 
+            document.getElementById('modalTags').innerHTML = project.tags.map(tag => `<span class="project-tag bg-teal-100 text-teal-800 dark:bg-teal-900 dark:text-teal-200">${tag}</span>`).join('');
+            document.getElementById('modalBody').innerHTML = project.content[currentLang];
+            
+            const linksContainer = document.getElementById('modalLinks');
+            linksContainer.innerHTML = '';
+            if (project.links && project.links.length > 0) {
+                 project.links.forEach(link => {
+                    const linkName = translations[currentLang][link.nameKey] || 'View Link';
+                    linksContainer.innerHTML += `
+                        <a href="${link.url}" target="_blank" class="inline-flex items-center bg-teal-600 text-white px-4 py-2 rounded-md hover:bg-teal-700 transition-colors">
+                            ${linkName}
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                            </svg>
+                        </a>`;
+                 });
+            }
+            
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            document.body.style.overflow = 'hidden';
+        }
+    }
+    
+    function closeModal() {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+        document.body.style.overflow = 'auto';
+    }
+
+    closeModalBtn.addEventListener('click', closeModal);
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) closeModal();
+    });
+
+    const imageModal = document.getElementById('imageModal');
+    const modalImage = document.getElementById('modalImage');
+    const closeImageModalBtn = document.getElementById('closeImageModal');
+
+    document.querySelectorAll('.gallery-image').forEach(img => {
+        img.addEventListener('click', () => {
+            modalImage.src = img.src;
+            imageModal.classList.remove('hidden');
+            imageModal.classList.add('flex');
+            document.body.style.overflow = 'hidden';
+        });
+    });
+
+    function closeImageModal() {
+        imageModal.classList.add('hidden');
+        imageModal.classList.remove('flex');
+        document.body.style.overflow = 'auto';
+    }
+
+    closeImageModalBtn.addEventListener('click', closeImageModal);
+    imageModal.addEventListener('click', (e) => {
+        if (e.target === imageModal) {
+            closeImageModal();
+        }
+    });
+
+    function createSkillsChart() {
+        const skillsData = {
+            labels: ['C++', 'C#', 'C', 'Python', 'Qt', 'ASP.NET Core', 'Databases', 'Networking'],
+            datasets: [{
+                label: 'Proficiency',
+                data: [9, 9, 8, 7, 9, 8, 8, 8],
+                borderWidth: 1
+            }]
+        };
+        const skillsChartCtx = document.getElementById('skillsChart').getContext('2d');
+        skillsChart = new Chart(skillsChartCtx, {
+            type: 'bar',
+            data: skillsData,
+            options: {
+                indexAxis: 'y',
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: { x: { beginAtZero: true, max: 10 }, y: {} },
+                plugins: {
+                    legend: { display: false },
+                    title: { display: true, padding: { bottom: 20 }, font: { size: 18, weight: 'bold' } },
+                    tooltip: {
+                        callbacks: {
+                            label: (context) => `${context.dataset.label || ''}: ${context.parsed.x} / 10`
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    function updateChartTheme() {
+        if (!skillsChart) return;
+        const isDark = currentTheme === 'dark';
+        const gridColor = isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.05)';
+        const tickColor = isDark ? '#cbd5e1' : '#4b5563';
+        const titleColor = isDark ? '#f1f5f9' : '#1f2937';
+        
+        skillsChart.options.scales.x.grid.color = gridColor;
+        skillsChart.options.scales.y.grid.color = gridColor;
+        skillsChart.options.scales.x.ticks.color = tickColor;
+        skillsChart.options.scales.y.ticks.color = tickColor;
+        skillsChart.options.plugins.title.color = titleColor;
+        skillsChart.options.plugins.title.text = currentLang === 'ko' ? '기술 역량 개요' : 'Technical Skills Overview';
+        
+        skillsChart.data.datasets[0].backgroundColor = isDark ? 'rgba(45, 212, 191, 0.5)' : 'rgba(13, 148, 136, 0.6)';
+        skillsChart.data.datasets[0].borderColor = isDark ? 'rgba(45, 212, 191, 1)' : 'rgba(13, 148, 136, 1)';
+        
+        skillsChart.update();
+    }
+    
+    const mobileMenuButton = document.getElementById('mobile-menu-button');
+    const mobileMenu = document.getElementById('mobile-menu');
+    mobileMenuButton.addEventListener('click', () => mobileMenu.classList.toggle('hidden'));
+
+    document.querySelectorAll('#mobile-menu a, nav a').forEach(link => {
+        link.addEventListener('click', (e) => {
+            const targetId = link.getAttribute('href');
+            if(targetId.startsWith('#')) {
+                e.preventDefault();
+                document.querySelector(targetId).scrollIntoView({ behavior: 'smooth' });
+                if (!mobileMenu.classList.contains('hidden')) mobileMenu.classList.add('hidden');
+            }
+        });
+    });
+
+    createSkillsChart();
+    setLanguage(currentLang);
+    setTheme(currentTheme);
+    renderProjects('all');
+});
+</script>
+</body>
+</html>
+
