@@ -1,0 +1,15 @@
+[
+  {
+    "Name": "새 프로필",
+    "Projects": [
+      {
+        "Path": "Snake.Server\\Snake.Server.csproj",
+        "Action": "Start"
+      },
+      {
+        "Path": "Snake.Client.WinForms\\Snake.Client.WinForms.csproj",
+        "Action": "Start"
+      }
+    ]
+  }
+]

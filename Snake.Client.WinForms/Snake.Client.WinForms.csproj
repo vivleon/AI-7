@@ -1,0 +1,21 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+	<PropertyGroup>
+		<OutputType>WinExe</OutputType>
+		<TargetFramework>net8.0-windows</TargetFramework>
+		<UseWindowsForms>true</UseWindowsForms>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+		<!-- CI나 비윈도우 머신에서도 타겟팅 가능하도록 -->
+		<EnableWindowsTargeting>true</EnableWindowsTargeting>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<!-- SignalR 클라이언트 패키지 -->
+		<PackageReference Include="Microsoft.AspNetCore.SignalR.Client" Version="8.0.7" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<!-- Snake.Shared 프로젝트 참조 -->
+		<ProjectReference Include="..\Snake.Shared\Snake.Shared.csproj" />
+	</ItemGroup>
+</Project>
