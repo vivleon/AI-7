@@ -653,6 +653,61 @@ document.addEventListener('DOMContentLoaded', function() {
     };
     
     const projectData = [
+		        {
+            id: 7,
+            title: { ko: "음료캔 불량 판독 시스템", en: "Beverage Can Defect Detection System" },
+            category: "cpp", // 나현준님의 주요 기여 파트가 C++(MFC) 클라이언트이므로 'cpp'로 분류합니다.
+            image: "https://placehold.co/600x400/0D9488/FFFFFF?text=Defect+Detection",
+            shortDesc: {
+                ko: "C++(MFC), C#, Python을 연동한 AI 기반 음료캔 불량 판독 시스템.",
+                en: "AI-based beverage can defect detection system integrating C++ (MFC), C#, and Python."
+            },
+            duration: "2025/10/24 ~ 2025/10/31 (1주)",
+            tags: ["C++", "C#", "Python", "MFC", "TCP/IP", "OpenCV", "AI", "Basler Pylon"],
+            links: [
+                { nameKey: "demo_video", url: "https://youtu.be/8Bv3AzxIfOo" },
+                { nameKey: "github_source", url: "https://github.com/vivleon/Motion_Vision" }, // 클라이언트(본인) 저장소
+                { nameKey: "project_doc", url: "https://docs.google.com/document/d/1DLCb2VMFH2rN1C0MKLlw7oj9_cQH6JgjEwXDgCZyqAA/edit?usp=sharing" }
+            ],
+            content: {
+                ko: `
+                    <h4 class="font-semibold text-lg mb-2">개발 목적</h4>
+                    <p>C++ MFC, C#, Python 등 이기종 언어 간 통신을 학습하고, Basler pylon 카메라와 OpenCV를 활용한 실시간 영상 캡처, 전송, AI 분석을 통합한 클라이언트 애플리케이션 개발</p>
+                    
+                    <h4 class="font-semibold text-lg mb-2 mt-4">주요 기능 (담당: C++ 클라이언트)</h4>
+                    <ul class="list-disc list-inside mb-4 space-y-1">
+                        <li>Basler pylon 카메라 및 OpenCV를 융합한 실시간 영상 캡처 및 라이브 프리뷰 기능</li>
+                        <li>촬영된 TOP/SIDE 이미지를 GDI+로 시각화하는 Preview 다이얼로그(PreviewDlg) 구현</li>
+                        <li>장치 선택, IP/포트 설정, Flip(반전) 제어가 가능한 카메라 설정 다이얼로그(CameraSettingsDlg) 구현</li>
+                        <li>TCP/IP 소켓 통신을 통해 캡처된 이미지를 C# 서버로 전송</li>
+                        <li>서버로부터 수신한 AI 판정 결과(정상/불량)를 UI에 표시</li>
+                    </ul>
+                    
+                    <h4 class="font-semibold text-lg mb-2 mt-4">기술적 도전 및 해결 과정</h4>
+                    <p>프로젝트의 핵심 과제는 C++ MFC 클라이언트의 안정적인 실시간 영상 처리와 통신을 구현하는 것이었습니다. 초기 개발 시 MFC의 타이머 메시지 루프와 스레드 동기화 문제로 UI가 멈추는 현상이 발생했습니다. 이는 메시지 기반 구조로 재설계하여 해결했습니다. 또한, GDI+, 소켓, pylon 카메라 핸들 등 여러 리소스를 관리하며 멀티스레드 안정성을 확보하는 것이 중요했습니다. 서버와의 TCP 통신에서 발생한 응답 파싱 오류와 헤더 처리 문제는 반복적인 디버깅을 통해 안정적인 프로토콜 구조를 완성하며 해결했습니다. 이 프로젝트를 통해 MFC 기반 실시간 영상처리 시스템의 구조 설계, UI 반응성 개선, 디버깅 전략에 대한 깊은 이해를 얻게 되었습니다.</p>
+                    
+                    <p class="mt-4"><b>참고:</b> C# 서버 및 Python AI 서버 코드는 <a href="https://github.com/dldmstj4378/MFC_Project/tree/hj" target="_blank" class="text-teal-600 hover:underline">팀 GitHub 저장소</a>에서 확인할 수 있습니다.</p>
+                `,
+                en: `
+                    <h4 class="font-semibold text-lg mb-2">Development Purpose</h4>
+                    <p>To learn inter-process communication between heterogeneous languages (C++ MFC, C#, Python) and to develop a client application integrating real-time image capture, transmission, and AI analysis using Basler pylon camera and OpenCV.</p>
+                    
+                    <h4 class="font-semibold text-lg mb-2 mt-4">Key Features (Role: C++ Client)</h4>
+                    <ul class="list-disc list-inside mb-4 space-y-1">
+                        <li>Real-time video capture and live preview using Basler pylon camera and OpenCV integration.</li>
+                        <li>Implemented a Preview dialog (PreviewDlg) to visualize captured TOP/SIDE images using GDI+.</li>
+                        <li>Implemented a Camera Settings dialog (CameraSettingsDlg) for device selection, IP/Port input, and Flip control.</li>
+                        <li>Transmitted captured images to the C# server via TCP/IP socket communication.</li>
+                        <li>Displayed AI judgment results (Normal/Defective) received from the server on the UI.</li>
+                    </ul>
+                    
+                    <h4 class="font-semibold text-lg mb-2 mt-4">Technical Challenges & Solutions</h4>
+                    <p>The core challenge was implementing stable real-time video processing and communication for the C++ MFC client. Initially, UI freezing occurred due to timer message loop and thread synchronization issues in MFC. This was resolved by redesigning the architecture to be message-based. It was also critical to manage multiple resources (GDI+, sockets, pylon handles) while ensuring multi-threaded stability. Response parsing errors and header processing issues with the server's TCP communication were resolved through iterative debugging, completing a stable protocol structure. Through this project, I gained a deep understanding of MFC-based real-time video processing system architecture, UI responsiveness improvement, and debugging strategies.</p>
+                    
+                    <p class="mt-4"><b>Note:</b> The C# Server and Python AI Server code is available in the <a href="https://github.com/dldmstj4378/MFC_Project/tree/hj" target="_blank" class="text-teal-600 hover:underline">team GitHub repository</a>.</p>
+                `
+            }
+        },
         {
             id: 1,
             title: { ko: "C# WinForms Snake (온라인/싱글 멀티플레이)", en: "C# WinForms Snake (Online/Single Multiplayer)" },
@@ -1152,5 +1207,6 @@ document.addEventListener('DOMContentLoaded', function() {
 </script>
 </body>
 </html>
+
 
 
