@@ -9,10 +9,6 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
-    <!-- Chosen Palette: Warm Neutrals -->
-    <!-- Application Structure Plan: A single-page, vertical-scrolling application with thematic sections (Home, About, Skills, Projects, Contact). This structure tells a cohesive story, starting with a broad introduction and progressively diving deeper into technical skills and project experiences. The core interaction is the project section, where users can filter projects by technology and view details in a modal window. This approach keeps the main interface clean and user-friendly while providing rich, on-demand information, which is ideal for recruiters who want to quickly assess specific skills. -->
-    <!-- Visualization & Content Choices: The primary visualization is a horizontal bar chart for skills overview using Chart.js, chosen for its clarity in comparing proficiency levels. Report Info: Skillset derived from project analysis -> Goal: Compare technical proficiency -> Viz/Presentation: Chart.js Horizontal Bar Chart (Canvas) -> Interaction: Tooltips on hover -> Justification: Provides a quick, quantitative summary of abilities. For projects, a filterable grid of cards leading to detailed modals was chosen. Report Info: 6 project reports -> Goal: Organize and detail experiences -> Viz/Presentation: Interactive Card Grid & Modals (HTML/CSS/JS) -> Interaction: Click to filter, click to open details -> Justification: Allows users to self-direct their exploration based on interest (e.g., only C++ projects) without overwhelming them with information upfront. -->
-    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
     <style>
         body {
             font-family: 'Noto Sans KR', sans-serif;
@@ -648,12 +644,111 @@ document.addEventListener('DOMContentLoaded', function() {
             contact_subtitle: "저의 가능성에 대해 더 이야기하고 싶으시다면, 언제든지 연락주세요.",
             github_source: "GitHub 원본 소스 보기",
             demo_video: "데모 영상 보기",
-            project_doc: "완료 보고서 보기",
+            project_doc: "프로젝트 기획서 보기", // '완료 보고서'에서 '프로젝트 기획서'로 변경
         }
     };
     
     const projectData = [
-		        {
+        {
+            id: 8,
+            title: { ko: "AURORA 프로젝트", en: "AURORA Project" },
+            category: "python", // 핵심 AI 로직이 Python이므로
+            image: "https://placehold.co/600x400/0D9488/FFFFFF?text=AURORA+AI",
+            shortDesc: {
+                ko: "스스로 진화하는 개인형 AI 비서. 사용자의 맥락을 이해하고, 신뢰와 공감을 기반으로 함께 성장하는 'Companion Intelligence'를 목표로 합니다.",
+                en: "A self-evolving personal AI assistant. Aims to be a 'Companion Intelligence' that understands user context and grows with them based on trust and empathy."
+            },
+            duration: "2025/11 - Present",
+            tags: ["Python", "C#", "C++", ".NET 8", "FastAPI", "Qt", "AI", "LLM", "Policy-as-Code"],
+            links: [
+                { nameKey: "project_doc", url: "index (4).html" }, // (4) 파일 링크
+                { nameKey: "github_source", url: "#aurora-github-placeholder" }
+            ],
+            content: {
+                ko: `
+                    <h4 class="font-semibold text-lg mb-2">개발 목적</h4>
+                    <p>명령형 비서를 넘어, 사용자와 관계를 맺고 의도를 이해하며 함께 성장하는 '존재형 인공지능(Companion Intelligence)'을 구현합니다. 사용자의 데이터를 로컬에서 주권형으로 관리하며, 모든 행동을 투명하게 설명하고 동의를 구하는 신뢰 기반 AI를 구축합니다.</p>
+                    
+                    <h4 class="font-semibold text-lg mb-2 mt-4">주요 기능</h4>
+                    <ul class="list-disc list-inside mb-4 space-y-1">
+                        <li><b>5-Layer 아키텍처:</b> Perception(인지), Cognition(판단), Action(수행), Learning(학습), Memory & Emotion(기억/감정)의 분리된 계층 구조.</li>
+                        <li><b>핵심 자동화:</b> Routine Builder, Smart Inbox(메일 분류/초안), Browser Agent(리서치/요약), Screen OCR 퀵액션, Calendar 자동 스케줄링.</li>
+                        <li><b>자가 학습:</b> Contextual Bandit을 활용하여 사용자 피드백과 상황(시간, 앱)에 따라 스스로 행동을 최적화하고 진화합니다.</li>
+                        <li><b>보안 및 동의:</b> 'Policy-as-Code'와 'Consent-First' 원칙을 적용, 모든 고위험 작업 전 사용자 동의를 획득하고 모든 행동을 감사 로그(해시체인)로 기록합니다.</li>
+                    </ul>
+
+                    <h4 class="font-semibold text-lg mb-2 mt-4">기술 스택</h4>
+                    <ul class="list-disc list-inside mb-4 space-y-1">
+                        <li><b>Core AI:</b> Python (FastAPI, Transformers, LangChain)</li>
+                        <li><b>Tool Bridge:</b> .NET 8 (OS, 브라우저, 파일 시스템 제어)</li>
+                        <li><b>Edge Layer:</b> C++ / Qt (UI, 오프라인 폴백)</li>
+                        <li><b>Storage:</b> PostgreSQL + pgvector / SQLite (로컬)</li>
+                    </ul>
+                `,
+                en: `
+                    <h4 class="font-semibold text-lg mb-2">Development Purpose</h4>
+                    <p>To implement a 'Companion Intelligence' that goes beyond a command-based assistant, building a relationship with the user, understanding their intent, and growing with them. It builds a trust-based AI that manages user data locally (sovereignty), explains all actions transparently, and operates on consent.</p>
+                    
+                    <h4 class="font-semibold text-lg mb-2 mt-4">Key Features</h4>
+                    <ul class="list-disc list-inside mb-4 space-y-1">
+                        <li><b>5-Layer Architecture:</b> A separated structure of Perception, Cognition, Action, Learning, and Memory & Emotion layers.</li>
+                        <li><b>Core Automations:</b> Routine Builder, Smart Inbox (email triage/drafting), Browser Agent (research/summary), Screen OCR Quick Actions, Calendar Auto-Scheduling.</li>
+                        <li><b>Self-Learning:</b> Utilizes a Contextual Bandit to self-optimize and evolve its actions based on user feedback and context (time, app).</li>
+                        <li><b>Security & Consent:</b> Applies 'Policy-as-Code' and 'Consent-First' principles, obtaining user consent before all high-risk actions and recording all actions in an audit log (hash-chain).</li>
+                    </ul>
+
+                    <h4 class="font-semibold text-lg mb-2 mt-4">Tech Stack</h4>
+                    <ul class="list-disc list-inside mb-4 space-y-1">
+                        <li><b>Core AI:</b> Python (FastAPI, Transformers, LangChain)</li>
+                        <li><b>Tool Bridge:</b> .NET 8 (OS, Browser, File System Control)</li>
+                        <li><b>Edge Layer:</b> C++ / Qt (UI, Offline Fallback)</li>
+                        <li><b>Storage:</b> PostgreSQL + pgvector / SQLite (Local)</li>
+                    </ul>
+                `
+            }
+        },
+        {
+            id: 9,
+            title: { ko: "WPF 프로젝트", en: "WPF Project" },
+            category: "csharp",
+            image: "https://placehold.co/600x400/0D9488/FFFFFF?text=WPF+Project",
+            shortDesc: {
+                ko: "WPF를 이용한 데스크톱 애플리케이션 프로젝트입니다. (내용 추가 예정)",
+                en: "A desktop application project using WPF. (Content to be added)"
+            },
+            duration: "TBD",
+            tags: ["C#", "WPF", ".NET"],
+            links: [
+                { nameKey: "github_source", url: "#wpf-github-placeholder" },
+                { nameKey: "project_doc", url: "#wpf-doc-placeholder" },
+                { nameKey: "demo_video", url: "#wpf-video-placeholder" }
+            ],
+            content: {
+                ko: `
+                    <h4 class="font-semibold text-lg mb-2">개발 목적</h4>
+                    <p>WPF 기술을 활용한 데스크톱 애플리케이션 개발. (세부 내용 추가 예정)</p>
+                    <h4 class="font-semibold text-lg mb-2 mt-4">주요 기능</h4>
+                    <ul class="list-disc list-inside mb-4 space-y-1">
+                        <li>주요 기능 1 (추가 예정)</li>
+                        <li>주요 기능 2 (추가 예정)</li>
+                    </ul>
+                    <h4 class="font-semibold text-lg mb-2 mt-4">기술적 도전 및 해결 과정</h4>
+                    <p>프로젝트 진행 중 겪었던 기술적 어려움과 해결 과정에 대해 여기에 작성될 예정입니다.</p>
+                `,
+                en: `
+                    <h4 class="font-semibold text-lg mb-2">Development Purpose</h4>
+                    <p>Development of a desktop application using WPF technology. (Details to be added)</p>
+                    <h4 class="font-semibold text-lg mb-2 mt-4">Key Features</h4>
+                    <ul class="list-disc list-inside mb-4 space-y-1">
+                        <li>Key Feature 1 (To be added)</li>
+                        <li>Key Feature 2 (To be added)</li>
+                    </ul>
+                    <h4 class="font-semibold text-lg mb-2 mt-4">Technical Challenges & Solutions</h4>
+                    <p>Technical challenges encountered during the project and their solutions will be written here.</p>
+                `
+            }
+        },
+		{
             id: 7,
             title: { ko: "음료캔 불량 판독 시스템", en: "Beverage Can Defect Detection System" },
             category: "cpp", // 나현준님의 주요 기여 파트가 C++(MFC) 클라이언트이므로 'cpp'로 분류합니다.
@@ -893,7 +988,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         <li><b>Data Storage:</b> Permanent storage of user information (ID, password, withdrawal status) and chat logs (room name, sender ID, chat content, timestamp) using MySQL.</li>
                     </ul>
                     <h4 class="font-semibold text-lg mb-2 mt-4">My Role & Technical Growth</h4>
-                    <p>In this team project, I was responsible for writing the table specifications/ERD, implementing DB saving functions for user information and chat logs, and implementing public/group chat room creation functions. Directly communicating with the database using the MySQL C API in a C environment and handling multi-client socket programming was challenging, requiring meticulous attention to pointers and memory management. My goal was to provide a robust DB integration module to ensure stable operation for features implemented by my team members. This process deepened my understanding of memory management and system programming in low-level languages, and I gained experience in designing modules with stability and scalability in mind.</p>
+                    <p>In this team project, I was responsible for writing the table specifications/ERD, implementing DB saving functions for user information and chat logs, and implementing public/group chat room creation functions. Directly communicating with the database using the MySQL C API in a C environment and handling multi-client socket programming was challenging, requiring meticulous attention to pointers and memory management. My goal wasto provide a robust DB integration module to ensure stable operation for features implemented by my team members. This process deepened my understanding of memory management and system programming in low-level languages, and I gained experience in designing modules with stability and scalability in mind.</p>
                 `
             }
         },
@@ -1031,7 +1126,10 @@ document.addEventListener('DOMContentLoaded', function() {
     
     function renderProjects(filter = 'all') {
         projectGrid.innerHTML = '';
-        const filteredProjects = filter === 'all' ? projectData : projectData.filter(p => p.category === filter);
+        // id 순서대로 정렬 (8, 9, 7, 1, 2, 3, 4, 5, 6) -> (9, 8, 7, 6, 5, 4, 3, 2, 1)
+        const sortedProjects = projectData.sort((a, b) => b.id - a.id);
+        
+        const filteredProjects = filter === 'all' ? sortedProjects : sortedProjects.filter(p => p.category === filter);
 
         filteredProjects.forEach(project => {
             const card = document.createElement('div');
@@ -1080,8 +1178,11 @@ document.addEventListener('DOMContentLoaded', function() {
             if (project.links && project.links.length > 0) {
                  project.links.forEach(link => {
                     const linkName = translations[currentLang][link.nameKey] || 'View Link';
+                    // (4) 파일에 대한 링크를 올바르게 처리합니다.
+                    const url = (link.url === 'index (4).html') ? 'index (4).html' : link.url;
+                    const target = (url.startsWith('#') || url === 'index (4).html') ? '_self' : '_blank';
                     linksContainer.innerHTML += `
-                        <a href="${link.url}" target="_blank" class="inline-flex items-center bg-teal-600 text-white px-4 py-2 rounded-md hover:bg-teal-700 transition-colors">
+                        <a href="${url}" target="${target}" class="inline-flex items-center bg-teal-600 text-white px-4 py-2 rounded-md hover:bg-teal-700 transition-colors">
                             ${linkName}
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
@@ -1207,7 +1308,3 @@ document.addEventListener('DOMContentLoaded', function() {
 </script>
 </body>
 </html>
-
-
-
-
